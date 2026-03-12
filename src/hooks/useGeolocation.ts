@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 interface Location {
   lat: number;
@@ -12,6 +14,19 @@ interface GeolocationState {
   error: string | null;
 }
 
+async function reverseGeocode(lat: number, lng: number): Promise<string | undefined> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    const data = await response.json();
+    return data.display_name ?? undefined;
+  } catch (e) {
+    console.log('Address lookup failed:', e);
+    return undefined;
+  }
+}
+
 export function useGeolocation() {
   const [state, setState] = useState<GeolocationState>({
     location: null,
@@ -20,62 +35,59 @@ export function useGeolocation() {
   });
 
   const getCurrentLocation = useCallback((): Promise<Location> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      if (!navigator.geolocation) {
-        const error = 'Geolocation is not supported by your browser';
-        setState(prev => ({ ...prev, isLoading: false, error }));
-        reject(new Error(error));
-        return;
-      }
+      try {
+        let lat: number;
+        let lng: number;
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const location: Location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // Try to get address using reverse geocoding
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`
-            );
-            const data = await response.json();
-            if (data.display_name) {
-              location.address = data.display_name;
-            }
-          } catch (e) {
-            // Address lookup failed, continue without it
-            console.log('Address lookup failed:', e);
+        if (Capacitor.isNativePlatform()) {
+          // Native Android / iOS — use Capacitor Geolocation plugin
+          const permission = await Geolocation.requestPermissions();
+          if (permission.location !== 'granted') {
+            const msg = 'Location permission denied';
+            setState(prev => ({ ...prev, isLoading: false, error: msg }));
+            reject(new Error(msg));
+            return;
           }
-
-          setState({ location, isLoading: false, error: null });
-          resolve(location);
-        },
-        (error) => {
-          let errorMessage = 'Failed to get location';
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location unavailable';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out';
-              break;
+          const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+        } else {
+          // Web browser fallback
+          if (!navigator.geolocation) {
+            const msg = 'Geolocation is not supported by your browser';
+            setState(prev => ({ ...prev, isLoading: false, error: msg }));
+            reject(new Error(msg));
+            return;
           }
-          setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
-          reject(new Error(errorMessage));
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000,
+          const pos = await new Promise<GeolocationPosition>((res, rej) =>
+            navigator.geolocation.getCurrentPosition(res, rej, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 60000,
+            })
+          );
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
         }
-      );
+
+        const address = await reverseGeocode(lat, lng);
+        const location: Location = { lat, lng, address };
+        setState({ location, isLoading: false, error: null });
+        resolve(location);
+      } catch (error: any) {
+        let errorMessage = 'Failed to get location';
+        // GeolocationPositionError has a numeric .code (1=denied, 2=unavailable, 3=timeout)
+        const code = error?.code ?? error?.PERMISSION_DENIED;
+        if (code === 1) errorMessage = 'Location permission denied';
+        else if (code === 2) errorMessage = 'Location unavailable';
+        else if (code === 3) errorMessage = 'Location request timed out';
+        setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
+        // Re-throw the original error so callers can inspect .code directly
+        reject(error instanceof Error ? error : new Error(errorMessage));
+      }
     });
   }, []);
 

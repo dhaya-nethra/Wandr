@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocationPicker } from './LocationPicker';
+import { TravelModeIcon } from './TravelModeIcon';
 import { useTrips } from '@/hooks/useTrips';
 import { 
   TravelMode, 
@@ -164,7 +165,7 @@ export function TripForm() {
                 {TRAVEL_MODES.map((m) => (
                   <SelectItem key={m.value} value={m.value}>
                     <span className="flex items-center gap-2">
-                      <span>{m.icon}</span>
+                      <TravelModeIcon mode={m.value} className="h-4 w-4 text-primary" />
                       <span>{m.label}</span>
                     </span>
                   </SelectItem>

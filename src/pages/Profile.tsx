@@ -2,15 +2,22 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useConsent } from '@/hooks/useConsent';
+import { useAuth } from '@/hooks/useAuth';
 import { useTrips } from '@/hooks/useTrips';
-import { User, Shield, Database, MapPin, ExternalLink } from 'lucide-react';
+import { User, Shield, Database, MapPin, ExternalLink, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Profile() {
   const navigate = useNavigate();
   const { hasConsent, revokeConsent } = useConsent();
+  const { participantId, logout } = useAuth();
   const { trips, clearAllTrips } = useTrips();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const handleRevokeConsent = () => {
     revokeConsent();
@@ -31,7 +38,7 @@ export default function Profile() {
             <User className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-primary-foreground">Survey Participant</h1>
+            <h1 className="text-xl font-bold text-primary-foreground">{participantId || 'Survey Participant'}</h1>
             <p className="text-sm text-primary-foreground/80">
               Contributing to Kerala transport research
             </p>
@@ -92,6 +99,14 @@ export default function Profile() {
             >
               Revoke Consent & Clear Data
             </Button>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           </CardContent>
         </Card>
 
@@ -125,10 +140,10 @@ export default function Profile() {
         {/* App Info */}
         <div className="text-center py-4 animate-slide-up">
           <p className="text-xs text-muted-foreground">
-            NATPAC Travel Survey App v1.0
+            Wandr App v1.0
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Government of Kerala • KSCSTE
+            For Government of Kerala • KSCSTE
           </p>
         </div>
       </div>

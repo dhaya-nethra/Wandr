@@ -22,7 +22,7 @@ export default function Dashboard() {
         <div className="animate-slide-up">
           <p className="text-sm text-primary-foreground/80">Welcome to</p>
           <h1 className="text-2xl font-bold text-primary-foreground">
-            NATPAC Travel Survey
+            Wandr
           </h1>
           <p className="mt-1 text-sm text-primary-foreground/70">
             Track your daily trips to improve Kerala's transportation

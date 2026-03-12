@@ -1,6 +1,7 @@
 import { Trip, TRAVEL_MODES, TRIP_PURPOSES } from '@/types/trip';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Clock, Route, Users, IndianRupee } from 'lucide-react';
+import { TravelModeIcon } from './TravelModeIcon';
 import { format } from 'date-fns';
 
 interface TripCardProps {
@@ -19,8 +20,8 @@ export function TripCard({ trip, onClick }: TripCardProps) {
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-            {mode?.icon || '🚐'}
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <TravelModeIcon mode={trip.mode} className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">

@@ -1,20 +1,26 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConsent } from '@/hooks/useConsent';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { hasConsent, isLoading } = useConsent();
+  const { hasConsent, isLoading: consentLoading } = useConsent();
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
+
+  const isLoading = consentLoading || authLoading;
 
   useEffect(() => {
     if (!isLoading) {
-      if (hasConsent) {
+      if (!isLoggedIn) {
+        navigate('/login');
+      } else if (hasConsent) {
         navigate('/dashboard');
       } else {
         navigate('/onboarding');
       }
     }
-  }, [hasConsent, isLoading, navigate]);
+  }, [isLoggedIn, hasConsent, isLoading, navigate]);
 
   // Loading state while checking consent
   return (
