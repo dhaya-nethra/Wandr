@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TripForm } from '@/components/trips/TripForm';
+import { LocationPermissionDialog } from '@/components/trips/LocationPermissionDialog';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { useTrips } from '@/hooks/useTrips';
@@ -16,6 +17,25 @@ import {
 } from 'lucide-react';
 
 interface Location { lat: number; lng: number; address?: string }
+
+const PERM_KEY = 'natpac_location_perm';
+
+function readStoredPerm(): 'allow' | 'deny' | null {
+  try {
+    const v = localStorage.getItem(PERM_KEY);
+    return v === 'allow' || v === 'deny' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePermChoice(choice: 'allow' | 'deny') {
+  try {
+    localStorage.setItem(PERM_KEY, choice);
+  } catch {
+    // Ignore storage write errors.
+  }
+}
 
 /** Calculates distance between two GPS coordinates using the Haversine formula */
 function haversineKm(a: Location, b: Location): number {
@@ -55,6 +75,8 @@ export default function ActiveTrip() {
   const [elapsed, setElapsed] = useState(0);
   const [pendingTrip, setPendingTrip] = useState<any | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [showPermDialog, setShowPermDialog] = useState(false);
+  const [dialogKey, setDialogKey] = useState(0);
 
   const watchIdRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -81,6 +103,22 @@ export default function ActiveTrip() {
       toast.error('Location tracking is disabled. Enable it in Profile > Location Tracking.');
       return;
     }
+
+    const storedPerm = readStoredPerm();
+    if (storedPerm === 'deny') {
+      toast.error('Location access was denied for this device. Use manual trip entry or change location preference.');
+      return;
+    }
+    if (storedPerm !== 'allow') {
+      setDialogKey((k) => k + 1);
+      setShowPermDialog(true);
+      return;
+    }
+
+    await startTrackingInternal();
+  };
+
+  const startTrackingInternal = async () => {
     setIsStarting(true);
     try {
       const loc = await getCurrentLocation();
@@ -128,6 +166,26 @@ export default function ActiveTrip() {
     }
   };
 
+  const handlePermAllow = async (remember: boolean) => {
+    setShowPermDialog(false);
+    if (remember) {
+      savePermChoice('allow');
+    }
+    await startTrackingInternal();
+  };
+
+  const handlePermDeny = (remember: boolean) => {
+    setShowPermDialog(false);
+    if (remember) {
+      savePermChoice('deny');
+    }
+    toast.error('Location access denied.');
+  };
+
+  const handlePermDismiss = () => {
+    setShowPermDialog(false);
+  };
+
   const stopTracking = async () => {
     if (watchIdRef.current) {
       if (Capacitor.isNativePlatform()) {
@@ -169,6 +227,14 @@ export default function ActiveTrip() {
       </div>
 
       <div className="px-4 py-6 space-y-4">
+        <LocationPermissionDialog
+          key={dialogKey}
+          open={showPermDialog}
+          onAllow={handlePermAllow}
+          onDeny={handlePermDeny}
+          onDismiss={handlePermDismiss}
+        />
+
         {!trackingEnabled && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3">
             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
@@ -280,6 +346,7 @@ export default function ActiveTrip() {
                 createdAt: new Date().toISOString(),
                 needsDetails: false,
               }}
+              forceCreateMode
               onSuccess={() => {
                 setPendingTrip(null);
                 navigate('/trips');

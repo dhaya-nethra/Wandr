@@ -34,14 +34,16 @@ interface TripFormProps {
   trip?: Trip;
   /** Called after a successful save/update */
   onSuccess?: () => void;
+  /** Force save mode even when a prefilled trip object is provided */
+  forceCreateMode?: boolean;
 }
 
-export function TripForm({ trip: existingTrip, onSuccess }: TripFormProps) {
+export function TripForm({ trip: existingTrip, onSuccess, forceCreateMode = false }: TripFormProps) {
   const navigate = useNavigate();
   const { saveTrip, updateTrip } = useTrips();
   const { getCurrentLocation, isLoading: gpsLoading } = useGeolocation();
   const { trackingEnabled } = useLocationTracking();
-  const isEditMode = !!existingTrip;
+  const isEditMode = !!existingTrip && !forceCreateMode;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gpsAutoFilled, setGpsAutoFilled] = useState(false);
