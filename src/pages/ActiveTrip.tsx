@@ -9,6 +9,7 @@ import { LocationPermissionDialog } from '@/components/trips/LocationPermissionD
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { useTrips } from '@/hooks/useTrips';
+import { reverseGeocodeCoordinates } from '@/lib/geocoding';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { toast } from 'sonner';
@@ -48,14 +49,6 @@ function haversineKm(a: Location, b: Location): number {
       Math.cos((b.lat * Math.PI) / 180) *
       Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
-
-async function reverseGeocode(lat: number, lng: number): Promise<string | undefined> {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-    const data = await res.json();
-    return data.display_name ?? undefined;
-  } catch { return undefined; }
 }
 
 type TripStatus = 'idle' | 'tracking' | 'completed';
@@ -200,7 +193,7 @@ export default function ActiveTrip() {
     const destLoc = currentLocation || origin;
 
     if (destLoc) {
-      const addr = await reverseGeocode(destLoc.lat, destLoc.lng);
+      const addr = await reverseGeocodeCoordinates(destLoc.lat, destLoc.lng);
       const finalDest: Location = { ...destLoc, address: addr };
       setDestination(finalDest);
 

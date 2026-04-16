@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
+import { reverseGeocodeCoordinates } from '@/lib/geocoding';
 
 interface Location {
   lat: number;
@@ -12,19 +13,6 @@ interface GeolocationState {
   location: Location | null;
   isLoading: boolean;
   error: string | null;
-}
-
-async function reverseGeocode(lat: number, lng: number): Promise<string | undefined> {
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-    );
-    const data = await response.json();
-    return data.display_name ?? undefined;
-  } catch (e) {
-    console.log('Address lookup failed:', e);
-    return undefined;
-  }
 }
 
 export function useGeolocation() {
@@ -73,7 +61,7 @@ export function useGeolocation() {
           lng = pos.coords.longitude;
         }
 
-        const address = await reverseGeocode(lat, lng);
+        const address = await reverseGeocodeCoordinates(lat, lng);
         const location: Location = { lat, lng, address };
         setState({ location, isLoading: false, error: null });
         resolve(location);
