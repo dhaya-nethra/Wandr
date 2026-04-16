@@ -8,8 +8,8 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, showNav = true }: AppLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <main className={showNav ? 'pb-20' : ''}>
+    <div className="min-h-screen page-bg">
+      <main className={showNav ? 'pb-16' : ''}>
         {children}
       </main>
       {showNav && <MobileNav />}

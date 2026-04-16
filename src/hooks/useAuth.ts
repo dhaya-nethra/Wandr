@@ -28,6 +28,7 @@ export function useAuth() {
     } else {
       localStorage.setItem(AUTH_KEY, name);
     }
+
     setParticipantId(name);
   };
 

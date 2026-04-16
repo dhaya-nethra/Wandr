@@ -2,11 +2,26 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
+  "description": "Wandr trip tracker desktop and mobile app",
+  "author": "NATPAC",
   "type": "module",
+  "main": "desktop/main.cjs",
   "scripts": {
     "dev": "vite",
+    "dev:server": "cd server && node index.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "desktop:dev": "concurrently \"npm run dev\" \"electron .\"",
+    "desktop:build": "npm run build && electron-builder",
+    "desktop:pack": "npm run build && electron-builder --dir",
+    "mobile:sync": "npm run build && npx cap sync",
+    "mobile:open:android": "npm run build && npx cap sync android && npx cap open android",
+    "mobile:open:ios": "npm run build && npx cap sync ios && npx cap open ios",
+    "mobile:build:android": "npm run mobile:build:android:apk",
+    "mobile:build:android:apk": "npm run build && npx cap sync android && cd android && gradlew.bat :app:assembleRelease",
+    "mobile:build:android:aab": "npm run build && npx cap sync android && cd android && gradlew.bat :app:bundleRelease",
+    "mobile:artifacts:android": "node -e \"const fs=require('fs');const p=require('path');const roots=['android/app/build/outputs/apk/release','android/app/build/outputs/bundle/release'];const files=[];for(const r of roots){if(fs.existsSync(r)){for(const n of fs.readdirSync(r)){const f=p.join(r,n);if(fs.statSync(f).isFile())files.push(f);}}}if(!files.length){console.log('No Android release artifacts found. Run mobile:build:android:apk or mobile:build:android:aab first.');process.exit(0);}for(const f of files)console.log(f);\"",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
@@ -80,6 +95,9 @@
     "@vitejs/plugin-basic-ssl": "^2.1.4",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -92,5 +110,42 @@
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
+  },
+  "build": {
+    "appId": "com.team16.wandr.desktop",
+    "productName": "Wandr",
+    "artifactName": "Wandr-${version}-${os}-${arch}.${ext}",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "server/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "icon": "build/wandr-desktop.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Wandr",
+      "installerIcon": "build/wandr-desktop.ico",
+      "uninstallerIcon": "build/wandr-desktop.ico",
+      "installerHeaderIcon": "build/wandr-desktop.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
   }
 }

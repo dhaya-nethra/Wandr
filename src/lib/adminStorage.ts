@@ -23,7 +23,7 @@ const CENTRAL_KEY = 'natpac_central_store';
 
 // In production this would NEVER be in client code — it would live in an HSM.
 // For the demo, we hard-code the key so admins can enter it at login.
-export const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2024-SECURE';
+export const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2026-';
 
 export interface ParticipantShard {
   participantAlias: string;
@@ -34,6 +34,7 @@ export interface ParticipantShard {
 
 export interface DecryptedShard {
   participantAlias: string;
+  participantId: string;
   hashedId: string;
   trips: Trip[];
   lastUpdated: string;
@@ -124,6 +125,7 @@ export async function decryptAllShards(
       const trips = await decryptShard(hashedId, shard, govMasterKey, participantId);
       results.push({
         participantAlias: shard.participantAlias,
+        participantId,
         hashedId,
         trips,
         lastUpdated: shard.lastUpdated,
@@ -164,4 +166,57 @@ export async function registerParticipantMapping(
 /** Count of registered participants (non-sensitive metadata) */
 export function getParticipantCount(): number {
   return Object.keys(loadStore()).length;
+}
+
+/** Delete all data for a specific participant (admin action) */
+export function deleteParticipantData(hashedId: string): void {
+  const store = loadStore();
+  delete store[hashedId];
+  saveStore(store);
+  // Also remove from ID mapping
+  const MAPPING_KEY = 'natpac_id_mapping';
+  // The mapping is encrypted — we can only remove the store shard,
+  // the mapping entry will be skipped on next decryptAllShards
+}
+
+// ── Admin User Management ─────────────────────────────────────────────────────
+// Additional admin accounts created through the Admin Management panel.
+// Built-in demo accounts are validated separately in useAdminAuth.ts.
+
+const ADMIN_USERS_KEY = 'natpac_admin_users';
+
+export interface StoredAdminUser {
+  username: string;
+  password: string;   // Plain-text for demo; in production would be hashed
+  role: 'ADMIN' | 'SCIENTIST';
+  addedAt: string;
+  addedBy: string;
+}
+
+export function getStoredAdminUsers(): StoredAdminUser[] {
+  try {
+    const users = JSON.parse(localStorage.getItem(ADMIN_USERS_KEY) || '[]') as Array<Omit<StoredAdminUser, 'role'> & { role: string }>;
+    return users.map((user) => ({
+      ...user,
+      role: user.role === 'SCIENTIST' ? 'SCIENTIST' : 'ADMIN',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export function addStoredAdminUser(user: StoredAdminUser): void {
+  const users = getStoredAdminUsers();
+  const idx = users.findIndex((u) => u.username === user.username);
+  if (idx !== -1) {
+    users[idx] = user; // Update existing
+  } else {
+    users.push(user);
+  }
+  localStorage.setItem(ADMIN_USERS_KEY, JSON.stringify(users));
+}
+
+export function removeStoredAdminUser(username: string): void {
+  const filtered = getStoredAdminUsers().filter((u) => u.username !== username);
+  localStorage.setItem(ADMIN_USERS_KEY, JSON.stringify(filtered));
 }

@@ -1,0 +1,64 @@
+{
+  "participants": {
+    "e6cdb6ba052c2e45ee47f307a0aec5e69860295b9c12076b81437559f9ae5dfb": {
+      "id": "e6cdb6ba052c2e45ee47f307a0aec5e69860295b9c12076b81437559f9ae5dfb",
+      "alias": "24E6CD",
+      "createdAt": "2026-03-13T10:55:24.383Z"
+    }
+  },
+  "trips": {
+    "e6cdb6ba052c2e45ee47f307a0aec5e69860295b9c12076b81437559f9ae5dfb": [
+      {
+        "origin": {
+          "lat": 11.021315823476014,
+          "lng": 77.00570326721474,
+          "address": "Ward 56, East Zone, Coimbatore South, Coimbatore, Tamil Nadu, 641004, India"
+        },
+        "destination": {
+          "lat": 24.8704721,
+          "lng": 67.0847214,
+          "address": "Banglore Town, Gulshan-e-Iqbal Town, Gulshan District, Karachi Division, Sindh, Pakistan"
+        },
+        "startTime": "2026-03-13T10:54",
+        "endTime": "2026-03-14T12:00",
+        "mode": "taxi",
+        "distance": 123,
+        "purpose": "personal_business",
+        "companions": 2,
+        "frequency": "occasional",
+        "cost": 2000,
+        "needsDetails": false,
+        "id": "3bab82e9-b936-48f0-864c-ec17ec6be65f",
+        "tripNumber": 1,
+        "createdAt": "2026-03-13T10:55:24.247Z",
+        "syncedAt": "2026-03-13T11:01:00.513Z"
+      },
+      {
+        "origin": {
+          "lat": 11.021310997759045,
+          "lng": 77.00568063841888,
+          "address": "Ward 56, East Zone, Coimbatore South, Coimbatore, Tamil Nadu, 641004, India"
+        },
+        "destination": {
+          "lat": 24.8704721,
+          "lng": 67.0847214,
+          "address": "Banglore Town, Gulshan-e-Iqbal Town, Gulshan District, Karachi Division, Sindh, Pakistan"
+        },
+        "startTime": "2026-03-13T10:59",
+        "endTime": "2026-04-14T15:00",
+        "mode": "bus",
+        "distance": 133,
+        "purpose": "personal_business",
+        "companions": 3,
+        "frequency": "monthly",
+        "cost": 3000,
+        "needsDetails": false,
+        "id": "77453a27-b012-43d4-a00d-28ba3815d9ab",
+        "tripNumber": 2,
+        "createdAt": "2026-03-13T11:01:00.410Z",
+        "syncedAt": "2026-03-13T11:01:00.513Z"
+      }
+    ]
+  },
+  "auditLog": []
+}

@@ -1,11 +1,8 @@
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { StatsCard } from '@/components/trips/StatsCard';
 import { TripCard } from '@/components/trips/TripCard';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrips } from '@/hooks/useTrips';
-import { Route, MapPin, Clock, IndianRupee, Plus, ChevronRight } from 'lucide-react';
+import { Route, MapPin, Plus, ChevronRight, Navigation, ArrowRight } from 'lucide-react';
 
 export default function Dashboard() {
   const { trips, isLoading } = useTrips();
@@ -17,124 +14,109 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      {/* Header */}
-      <div className="gradient-primary px-6 pt-8 pb-12">
-        <div className="animate-slide-up">
-          <p className="text-sm text-primary-foreground/80">Welcome to</p>
-          <h1 className="text-2xl font-bold text-primary-foreground">
-            Wandr
-          </h1>
-          <p className="mt-1 text-sm text-primary-foreground/70">
-            Track your daily trips to improve Kerala's transportation
-          </p>
+      {/* ── Top bar ─────────────────────────────────────────────────────── */}
+      <div className="app-header px-5 py-4">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <div>
+            <p className="font-display text-[17px] font-bold text-white leading-none">Wandr</p>
+            <p className="text-[11px] text-blue-200 mt-0.5">NATPAC Mobility Survey</p>
+          </div>
+          <Link
+            to="/new-trip"
+            className="flex items-center gap-1.5 rounded-sm bg-slate-700 hover:bg-slate-800 px-3 py-1.5 text-[13px] font-medium text-white transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" /> New trip
+          </Link>
         </div>
       </div>
 
-      <div className="px-4 -mt-6 space-y-6 pb-4">
-        {/* Quick Action */}
-        <Link to="/new-trip">
-          <Card className="shadow-elevated hover:shadow-card transition-shadow cursor-pointer animate-slide-up overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                <div className="flex-1 p-4">
-                  <h2 className="font-semibold text-foreground">Record New Trip</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Tap to log your latest journey
-                  </p>
-                </div>
-                <div className="h-full px-4 flex items-center justify-center bg-primary/5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full gradient-primary">
-                    <Plus className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+      {/* ── Stats row ─────────────────────────────────────────────────── */}
+      <div className="bg-primary/5 border-b border-border">
+        <div className="max-w-5xl mx-auto px-5 py-4 grid grid-cols-4 divide-x divide-border">
+          {[
+            { label: 'Trips',    value: totalTrips },
+            { label: 'Distance', value: `${totalDistance.toFixed(1)} km` },
+            { label: 'Avg / trip', value: totalTrips > 0 ? `${(totalDistance / totalTrips).toFixed(1)} km` : '—' },
+            { label: 'Spend',    value: `₹${totalCost}` },
+          ].map((s) => (
+            <div key={s.label} className="px-4 first:pl-0">
+              <p className="label-caps">{s.label}</p>
+              <p className="stat-value mt-1">{s.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        {/* Stats Grid */}
+      {/* ── Main content ─────────────────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-5 py-6 space-y-5">
+
+        {/* Quick actions */}
         <div className="grid grid-cols-2 gap-3">
-          <StatsCard
-            title="Total Trips"
-            value={totalTrips}
-            subtitle="recorded"
-            icon={Route}
-            variant="primary"
-          />
-          <StatsCard
-            title="Distance"
-            value={`${totalDistance.toFixed(1)}`}
-            subtitle="kilometers"
-            icon={MapPin}
-            variant="secondary"
-          />
-          <StatsCard
-            title="Travel Cost"
-            value={`₹${totalCost}`}
-            subtitle="spent"
-            icon={IndianRupee}
-            variant="accent"
-          />
-          <StatsCard
-            title="Avg. Distance"
-            value={totalTrips > 0 ? `${(totalDistance / totalTrips).toFixed(1)}` : '0'}
-            subtitle="km/trip"
-            icon={Clock}
-            variant="primary"
-          />
+          <Link to="/new-trip" className="group card-flat shadow-card hover:shadow-panel transition-all p-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary/10 border border-primary/15">
+              <Plus className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-[14px] font-semibold text-foreground">Record trip</p>
+              <p className="text-[12px] text-muted-foreground">Log manually</p>
+            </div>
+          </Link>
+          <Link to="/active-trip" className="group card-flat shadow-card hover:shadow-panel transition-all p-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-slate-100 border border-slate-200">
+              <Navigation className="h-4 w-4 text-slate-600" />
+            </div>
+            <div>
+              <p className="text-[14px] font-semibold text-foreground">Auto detect</p>
+              <p className="text-[12px] text-muted-foreground">GPS tracking</p>
+            </div>
+          </Link>
         </div>
 
-        {/* Recent Trips */}
-        <Card className="shadow-card animate-slide-up">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Recent Trips</CardTitle>
+        {/* Recent trips */}
+        <div className="card-flat shadow-card">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <p className="font-display text-[15px] font-semibold text-foreground">Recent trips</p>
             {trips.length > 0 && (
-              <Link to="/trips" className="text-sm text-primary flex items-center gap-1">
-                View all
-                <ChevronRight className="h-4 w-4" />
+              <Link to="/trips" className="link-underline text-[13px] text-primary flex items-center gap-1">
+                View all <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             )}
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </div>
+          <div>
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="flex items-center gap-2 px-5 py-6 text-[13px] text-muted-foreground">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Loading trips…
               </div>
             ) : recentTrips.length > 0 ? (
-              recentTrips.map((trip) => (
-                <TripCard key={trip.id} trip={trip} />
-              ))
+              <div className="divide-y divide-border">
+                {recentTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </div>
             ) : (
-              <div className="text-center py-8">
-                <MapPin className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">No trips recorded yet</p>
-                <Link to="/new-trip">
-                  <Button variant="link" className="mt-2">
-                    Record your first trip
-                  </Button>
+              <div className="px-5 py-10 text-center">
+                <Route className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-[14px] font-medium text-foreground">No trips yet</p>
+                <p className="text-[13px] text-muted-foreground mt-1">Add your first trip to start contributing travel data.</p>
+                <Link to="/new-trip" className="inline-flex items-center gap-1.5 mt-4 text-[13px] font-medium text-primary link-underline">
+                  Record your first trip <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Info Card */}
-        <Card className="shadow-card border-primary/20 bg-primary/5 animate-slide-up">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Why record trips?</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your travel data helps NATPAC improve roads, public transit routes, 
-                  and urban planning across Kerala.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Why contribute */}
+        <div className="card-inset px-5 py-4 flex items-start gap-4">
+          <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <div>
+            <p className="text-[13px] font-medium text-foreground">Why your trips matter</p>
+            <p className="text-[13px] text-muted-foreground mt-0.5 leading-5">
+              Aggregated travel data helps NATPAC identify congestion patterns, plan transit routes, and improve road infrastructure across Kerala.
+            </p>
+          </div>
+        </div>
       </div>
     </AppLayout>
   );

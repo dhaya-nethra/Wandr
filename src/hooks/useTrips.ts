@@ -2,16 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Trip } from '@/types/trip';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { encryptData, decryptData } from '@/lib/crypto';
-import {
-  syncParticipantData,
-  registerParticipantMapping,
-  DEMO_MASTER_KEY,
-} from '@/lib/adminStorage';
+import { fetchTrips, syncTrips, deleteTrip as deleteTripOnServer } from '@/lib/backendApi';
 
-const BASE_KEY = 'natpac_trips';
 const AUTH_KEY = 'natpac_participant_id';
-const LEGACY_KEY = 'natpac_trips'; // pre-encryption storage key
 
 async function resolveParticipantId(): Promise<string | null> {
   if (Capacitor.isNativePlatform()) {
@@ -22,80 +15,7 @@ async function resolveParticipantId(): Promise<string | null> {
 }
 
 function participantStorageKey(participantId: string): string {
-  const safe = participantId.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 32);
-  return `${BASE_KEY}_enc_${safe}`;
-}
-
-async function getStoredTrips(participantId: string): Promise<Trip[]> {
-  const key = participantStorageKey(participantId);
-
-  let raw: string | null = null;
-  if (Capacitor.isNativePlatform()) {
-    const { value } = await Preferences.get({ key });
-    raw = value;
-  } else {
-    raw = localStorage.getItem(key);
-  }
-
-  if (raw) {
-    try {
-      // Attempt AES-GCM decryption
-      const decrypted = await decryptData(raw, participantId, DEMO_MASTER_KEY);
-      return decrypted as Trip[];
-    } catch {
-      // Fallback: maybe it's plain JSON from a previous version
-      try { return JSON.parse(raw); } catch { return []; }
-    }
-  }
-
-  // Migrate legacy unencrypted data if present
-  const legacy = localStorage.getItem(LEGACY_KEY);
-  if (legacy) {
-    try {
-      const parsed: Trip[] = JSON.parse(legacy);
-      // Re-save as encrypted
-      await setStoredTrips(parsed, participantId);
-      localStorage.removeItem(LEGACY_KEY);
-      return parsed;
-    } catch {
-      return [];
-    }
-  }
-
-  return [];
-}
-
-async function setStoredTrips(trips: Trip[], participantId: string): Promise<void> {
-  const key = participantStorageKey(participantId);
-  const encrypted = await encryptData(trips, participantId, DEMO_MASTER_KEY);
-
-  if (Capacitor.isNativePlatform()) {
-    await Preferences.set({ key, value: encrypted });
-  } else {
-    localStorage.setItem(key, encrypted);
-  }
-
-  // Keep central admin store in sync (encrypted under admin master key)
-  try {
-    await registerParticipantMapping(participantId, DEMO_MASTER_KEY);
-    await syncParticipantData(participantId, trips, DEMO_MASTER_KEY);
-  } catch (e) {
-    console.warn('Central sync failed (non-critical):', e);
-  }
-}
-
-async function removeStoredTrips(participantId: string): Promise<void> {
-  const key = participantStorageKey(participantId);
-  if (Capacitor.isNativePlatform()) {
-    await Preferences.remove({ key });
-  } else {
-    localStorage.removeItem(key);
-  }
-  try {
-    await syncParticipantData(participantId, [], DEMO_MASTER_KEY);
-  } catch (e) {
-    console.warn('Central sync failed (non-critical):', e);
-  }
+  return participantId;
 }
 
 export function useTrips() {
@@ -111,7 +31,7 @@ export function useTrips() {
         return;
       }
       try {
-        const loaded = await getStoredTrips(pid);
+        const loaded = await fetchTrips(participantStorageKey(pid));
         setTrips(loaded);
       } catch (e) {
         console.error('Failed to load trips:', e);
@@ -133,27 +53,38 @@ export function useTrips() {
     };
     const updatedTrips = [...trips, newTrip];
     setTrips(updatedTrips);
-    await setStoredTrips(updatedTrips, participantId);
+    await syncTrips(participantStorageKey(participantId), updatedTrips);
     return newTrip;
+  }, [trips, participantId]);
+
+  const updateTrip = useCallback(async (id: string, changes: Partial<Omit<Trip, 'id' | 'tripNumber' | 'createdAt'>>) => {
+    if (!participantId) return;
+    const updatedTrips = trips.map((t) =>
+      t.id === id ? { ...t, ...changes, synced: false } : t
+    );
+    setTrips(updatedTrips);
+    await syncTrips(participantStorageKey(participantId), updatedTrips);
   }, [trips, participantId]);
 
   const deleteTrip = useCallback(async (id: string) => {
     if (!participantId) return;
     const updatedTrips = trips.filter((t) => t.id !== id);
     setTrips(updatedTrips);
-    await setStoredTrips(updatedTrips, participantId);
+    await deleteTripOnServer(participantStorageKey(participantId), id);
+    await syncTrips(participantStorageKey(participantId), updatedTrips);
   }, [trips, participantId]);
 
   const clearAllTrips = useCallback(async () => {
     if (!participantId) return;
     setTrips([]);
-    await removeStoredTrips(participantId);
+    await syncTrips(participantStorageKey(participantId), []);
   }, [participantId]);
 
   return {
     trips,
     isLoading,
     saveTrip,
+    updateTrip,
     deleteTrip,
     clearAllTrips,
   };

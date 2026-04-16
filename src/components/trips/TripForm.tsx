@@ -1,23 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { LocationPicker } from './LocationPicker';
 import { TravelModeIcon } from './TravelModeIcon';
 import { useTrips } from '@/hooks/useTrips';
-import { 
-  TravelMode, 
-  TripPurpose, 
-  TripFrequency, 
-  TRAVEL_MODES, 
-  TRIP_PURPOSES, 
-  TRIP_FREQUENCIES 
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useLocationTracking } from '@/hooks/useLocationTracking';
+import {
+  TravelMode,
+  TripPurpose,
+  TripFrequency,
+  TRAVEL_MODES,
+  TRIP_PURPOSES,
+  TRIP_FREQUENCIES,
+  Trip,
 } from '@/types/trip';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Navigation } from 'lucide-react';
 
 interface Location {
   lat: number;
@@ -25,58 +29,81 @@ interface Location {
   address?: string;
 }
 
-export function TripForm() {
+interface TripFormProps {
+  /** Pass an existing trip to enter edit mode */
+  trip?: Trip;
+  /** Called after a successful save/update */
+  onSuccess?: () => void;
+}
+
+export function TripForm({ trip: existingTrip, onSuccess }: TripFormProps) {
   const navigate = useNavigate();
-  const { saveTrip } = useTrips();
+  const { saveTrip, updateTrip } = useTrips();
+  const { getCurrentLocation, isLoading: gpsLoading } = useGeolocation();
+  const { trackingEnabled } = useLocationTracking();
+  const isEditMode = !!existingTrip;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [origin, setOrigin] = useState<Location | null>(null);
-  const [destination, setDestination] = useState<Location | null>(null);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [mode, setMode] = useState<TravelMode | ''>('');
-  const [distance, setDistance] = useState('');
-  const [purpose, setPurpose] = useState<TripPurpose | ''>('');
-  const [companions, setCompanions] = useState('0');
-  const [frequency, setFrequency] = useState<TripFrequency | ''>('');
-  const [cost, setCost] = useState('0');
+  const [gpsAutoFilled, setGpsAutoFilled] = useState(false);
+
+  const [origin, setOrigin] = useState<Location | null>(
+    existingTrip ? existingTrip.origin : null
+  );
+  const [destination, setDestination] = useState<Location | null>(
+    existingTrip ? existingTrip.destination : null
+  );
+  const [startTime, setStartTime] = useState(
+    existingTrip ? existingTrip.startTime.slice(0, 16) : ''
+  );
+  const [endTime, setEndTime] = useState(
+    existingTrip ? existingTrip.endTime.slice(0, 16) : ''
+  );
+  const [mode, setMode] = useState<TravelMode | ''>(existingTrip?.mode ?? '');
+  const [distance, setDistance] = useState(existingTrip ? String(existingTrip.distance) : '');
+  const [purpose, setPurpose] = useState<TripPurpose | ''>(existingTrip?.purpose ?? '');
+  const [companions, setCompanions] = useState(String(existingTrip?.companions ?? 0));
+  const [frequency, setFrequency] = useState<TripFrequency | ''>(existingTrip?.frequency ?? '');
+  const [cost, setCost] = useState(String(existingTrip?.cost ?? 0));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Auto-fill origin GPS when opening a NEW trip form and tracking is enabled
+  useEffect(() => {
+    if (isEditMode || !trackingEnabled || gpsAutoFilled) return;
+    getCurrentLocation()
+      .then((loc) => {
+        setOrigin(loc);
+        setGpsAutoFilled(true);
+        setStartTime(new Date().toISOString().slice(0, 16));
+        toast.info('Origin auto-filled from GPS', { duration: 2000 });
+      })
+      .catch(() => {/* silent — user can set manually */});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, trackingEnabled]);
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!origin || (origin.lat === 0 && origin.lng === 0)) {
-      newErrors.origin = 'Origin location is required';
-    }
-    if (!destination || (destination.lat === 0 && destination.lng === 0)) {
-      newErrors.destination = 'Destination location is required';
-    }
+    if (!origin || (origin.lat === 0 && origin.lng === 0)) newErrors.origin = 'Origin location is required';
+    if (!destination || (destination.lat === 0 && destination.lng === 0)) newErrors.destination = 'Destination location is required';
     if (!startTime) newErrors.startTime = 'Start time is required';
     if (!endTime) newErrors.endTime = 'End time is required';
     if (!mode) newErrors.mode = 'Travel mode is required';
-    if (!distance || parseFloat(distance) <= 0) {
-      newErrors.distance = 'Valid distance is required';
-    }
+    if (!distance || parseFloat(distance) <= 0) newErrors.distance = 'Valid distance is required';
     if (!purpose) newErrors.purpose = 'Trip purpose is required';
     if (!frequency) newErrors.frequency = 'Trip frequency is required';
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validate()) {
       toast.error('Please fill in all required fields');
       return;
     }
-
     setIsSubmitting(true);
-
     try {
-      saveTrip({
+      const data = {
         origin: origin!,
         destination: destination!,
         startTime,
@@ -87,12 +114,24 @@ export function TripForm() {
         companions: parseInt(companions) || 0,
         frequency: frequency as TripFrequency,
         cost: parseFloat(cost) || 0,
-      });
+        needsDetails: false,
+      };
 
-      toast.success('Trip recorded successfully!');
-      navigate('/trips');
+      if (isEditMode) {
+        await updateTrip(existingTrip.id, data);
+        toast.success('Trip updated successfully!');
+      } else {
+        await saveTrip(data);
+        toast.success('Trip recorded successfully!');
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/trips');
+      }
     } catch (error) {
-      toast.error('Failed to save trip');
+      toast.error(`Failed to ${isEditMode ? 'update' : 'save'} trip`);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -104,7 +143,19 @@ export function TripForm() {
       {/* Location Section */}
       <Card className="shadow-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Location Details</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Location Details</CardTitle>
+            {gpsAutoFilled && (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Navigation className="h-3 w-3" /> GPS Auto-filled
+              </Badge>
+            )}
+            {gpsLoading && !isEditMode && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Getting location…
+              </span>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <LocationPicker
@@ -279,10 +330,10 @@ export function TripForm() {
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving...
+            {isEditMode ? 'Updating…' : 'Saving…'}
           </>
         ) : (
-          'Save Trip'
+          isEditMode ? 'Update Trip' : 'Save Trip'
         )}
       </Button>
     </form>

@@ -142,8 +142,8 @@ export async function hashCredential(credential: string, salt: string): Promise<
 export async function verifyMasterKey(candidateKey: string): Promise<boolean> {
   // We test by encrypting a known sentinel and checking decryption succeeds
   const SENTINEL_ID = '__natpac_key_test__';
-  const SENTINEL_DATA = { valid: true, timestamp: '2024-01-01' };
-  const STORED_KEY = 'natpac_key_sentinel';
+  const SENTINEL_DATA = { valid: true, timestamp: '2026-01-01' };
+  const STORED_KEY = 'natpac_key_sentinel_2026';
 
   try {
     const stored = localStorage.getItem(STORED_KEY);

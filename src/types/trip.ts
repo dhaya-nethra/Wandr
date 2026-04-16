@@ -20,6 +20,10 @@ export interface Trip {
   frequency: TripFrequency;
   cost: number;
   createdAt: string;
+  /** Whether this trip has been successfully synced to the backend server */
+  synced?: boolean;
+  /** Whether this is an auto-detected trip still needing full details */
+  needsDetails?: boolean;
 }
 
 export type TravelMode = 

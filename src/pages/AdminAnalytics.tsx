@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { decryptAllShards, DecryptedShard } from '@/lib/adminStorage';
-import { appendAuditEntry } from '@/lib/auditLog';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { appendAdminAudit, fetchAdminParticipants, ServerParticipant } from '@/lib/backendApi';
 import { sha256Hex } from '@/lib/crypto';
 import { Trip } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -50,21 +50,22 @@ const PURPOSE_LABELS: Record<string, string> = {
 export default function AdminAnalytics() {
   const navigate = useNavigate();
   const { session, isAuthenticated } = useAdminAuth();
-  const [shards, setShards] = useState<DecryptedShard[]>([]);
+  const [participants, setParticipants] = useState<ServerParticipant[]>([]);
   const [loading, setLoading] = useState(false);
+  const isResearcher = session?.role === 'SCIENTIST';
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/admin/login');
   }, [isAuthenticated, navigate]);
 
   const loadData = useCallback(async () => {
-    if (!session?.govMasterKey) return;
+    if (!session) return;
     setLoading(true);
     try {
-      const result = await decryptAllShards(session.govMasterKey);
-      setShards(result);
+      const result = await fetchAdminParticipants();
+      setParticipants(result);
       const hashedUser = await sha256Hex(session.adminId);
-      await appendAuditEntry({ adminId: hashedUser, role: session.role, action: 'ANALYTICS_VIEW' });
+      await appendAdminAudit({ adminId: hashedUser, role: session.role, action: 'ANALYTICS_VIEW' });
     } finally {
       setLoading(false);
     }
@@ -74,7 +75,7 @@ export default function AdminAnalytics() {
     loadData();
   }, [loadData]);
 
-  const allTrips: Trip[] = shards.flatMap((s) => s.trips);
+  const allTrips: Trip[] = participants.flatMap((s) => s.trips);
 
   // ── Chart data ────────────────────────────────────────────────
   const modeData = Object.entries(
@@ -142,26 +143,23 @@ export default function AdminAnalytics() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-slate-900 text-white px-6 py-3 flex items-center gap-4 sticky top-0 z-40">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')} className="text-slate-300 hover:text-white h-8 gap-1.5">
-          <ArrowLeft className="h-4 w-4" /> Dashboard
-        </Button>
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-yellow-400" />
-          <span className="font-bold text-sm">Analytics — NATPAC Transport Research</span>
-        </div>
-        <Badge className="ml-auto text-xs bg-green-800 text-green-100">Live Data</Badge>
-      </header>
-
+    <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">
+              {!isResearcher && 'Admin analytics scope: full trip analytics for operational planning and reporting.'}
+              {isResearcher && 'Researcher analytics scope: anonymised and aggregate-only analytics for transport research.'}
+            </p>
+          </CardContent>
+        </Card>
+
         {/* KPI row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: 'Participants', value: shards.length },
+            { icon: Users, label: isResearcher ? 'Anonymised Cohorts' : 'Participants', value: participants.length },
             { icon: BarChart3, label: 'Total Trips', value: allTrips.length },
-            { icon: TrendingUp, label: 'Avg Trips / Person', value: shards.length ? (allTrips.length / shards.length).toFixed(1) : 0 },
+            { icon: TrendingUp, label: 'Avg Trips / Person', value: participants.length ? (allTrips.length / participants.length).toFixed(1) : 0 },
             {
               icon: PieIcon,
               label: 'Avg Distance',
@@ -338,6 +336,6 @@ export default function AdminAnalytics() {
           </>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

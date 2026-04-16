@@ -1,10 +1,12 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { useConsent } from '@/hooks/useConsent';
 import { useAuth } from '@/hooks/useAuth';
 import { useTrips } from '@/hooks/useTrips';
-import { User, Shield, Database, MapPin, ExternalLink, LogOut } from 'lucide-react';
+import { useLocationTracking } from '@/hooks/useLocationTracking';
+import { User, Shield, Database, MapPin, ExternalLink, LogOut, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -13,6 +15,12 @@ export default function Profile() {
   const { hasConsent, revokeConsent } = useConsent();
   const { participantId, logout } = useAuth();
   const { trips, clearAllTrips } = useTrips();
+  const { trackingEnabled, setTracking } = useLocationTracking();
+
+  const handleTrackingToggle = async (enabled: boolean) => {
+    await setTracking(enabled);
+    toast.success(enabled ? 'Location tracking enabled' : 'Location tracking disabled');
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -70,6 +78,35 @@ export default function Profile() {
                 <p className="text-xs text-muted-foreground">Spent</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Location Tracking */}
+        <Card className="shadow-card animate-slide-up">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Navigation className="h-4 w-4 text-primary" />
+              Location Tracking
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Enable Location Tracking</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Auto-detect trip origin via GPS when starting a new trip
+                </p>
+              </div>
+              <Switch
+                checked={trackingEnabled}
+                onCheckedChange={handleTrackingToggle}
+              />
+            </div>
+            {!trackingEnabled && (
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                GPS auto-fill is disabled. You can still enter locations manually.
+              </p>
+            )}
           </CardContent>
         </Card>
 

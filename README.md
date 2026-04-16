@@ -64,6 +64,77 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
+## Desktop app
+
+This repo now includes an Electron desktop wrapper that packages the existing React app with the local Express backend.
+
+To run it locally:
+
+```sh
+npm run desktop:dev
+```
+
+To build distributable installers:
+
+```sh
+npm run desktop:build
+```
+
+To build unpacked desktop output (quick local packaging check):
+
+```sh
+npm run desktop:pack
+```
+
+The desktop app serves the built frontend and API from the same local process, so no extra backend hosting is required.
+
+Desktop installer branding is configured in `package.json`:
+
+- Product name: `Wandr`
+- Windows installer icon: `build/wandr-desktop.ico`
+- Installer filename pattern: `Wandr-${version}-${os}-${arch}.${ext}`
+
+To update branding, replace `build/wandr-desktop.ico` with your final 256x256 (or multi-size) ICO asset.
+
+## iOS / Android apps
+
+Capacitor is already configured in this repo for native mobile builds.
+
+Typical workflow:
+
+```sh
+npm run mobile:sync
+npm run mobile:open:android
+npm run mobile:open:ios
+```
+
+For Android release builds:
+
+```sh
+npm run mobile:build:android
+```
+
+Explicit Android release commands:
+
+```sh
+npm run mobile:build:android:apk
+npm run mobile:build:android:aab
+npm run mobile:artifacts:android
+```
+
+Expected artifacts:
+
+- APK: `android/app/build/outputs/apk/release/app-release.apk`
+- AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+
+For iOS release builds, open the Xcode project on macOS after syncing:
+
+```sh
+npm run mobile:open:ios
+```
+
+Mobile builds need a reachable backend URL. Set `VITE_SERVER_URL` to your deployed API before building for iOS or Android if you are not running the backend on the same device.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

@@ -1,104 +1,357 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;450;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* NATPAC Travel Data Collection App - Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* NATPAC Trip Tracker — Design System v2 */
 
 @layer base {
   :root {
-    --background: 100 20% 98%;
-    --foreground: 215 25% 15%;
+    --background: 214 55% 95%;
+    --foreground: 218 40% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 218 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-    --primary: 228 74% 33%;
+    --popover-foreground: 218 40% 12%;
+    --primary: 215 78% 38%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 172 66% 40%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 15% 93%;
-    --muted-foreground: 215 15% 45%;
-    --accent: 45 93% 58%;
-    --accent-foreground: 215 25% 15%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 215 35% 90%;
+    --secondary-foreground: 215 55% 28%;
+    --muted: 214 30% 91%;
+    --muted-foreground: 215 14% 44%;
+    --accent: 215 40% 86%;
+    --accent-foreground: 218 40% 12%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 70% 40%;
+    --success: 158 64% 32%;
     --success-foreground: 0 0% 100%;
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 228 74% 33%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 400 25% 10%;
-    --foreground: 400 20% 95%;
-    --card: 215 25% 13%;
-    --card-foreground: 210 20% 95%;
-    --popover: 215 25% 13%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 228 74% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 172 66% 45%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 215 20% 20%;
-    --muted-foreground: 215 15% 60%;
-    --accent: 45 93% 58%;
-    --accent-foreground: 215 25% 15%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --border: 215 20% 22%;
-    --input: 215 20% 22%;
-    --ring: 228 74% 50%;
+    --border: 214 22% 84%;
+    --input: 214 22% 84%;
+    --ring: 215 78% 38%;
+    --radius: 0.25rem;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    background-color: #e8f0fc;
+  }
+
+  #root {
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
 }
 
 @layer components {
-  .gradient-primary {
-    /* background: linear-gradient(90deg, hsl(199 89% 38%), hsl(172 66% 40%)); */
-    background:#162f94;
-    
+  /* ── Structural shells ─────────────────────────────────────── */
+  .app-header {
+    background-color: #1656AD;
+    color: #fff;
   }
-  
 
+  .page-bg {
+    background-color: #e8f0fc;
+    min-height: 100vh;
+  }
+
+  /* ── Cards ─────────────────────────────────────────────────── */
+  .card-flat {
+    background: #ffffff;
+    border: 1px solid hsl(214 22% 87%);
+    border-radius: 0.25rem;
+  }
+
+  .card-inset {
+    background: hsl(214 40% 96%);
+    border: 1px solid hsl(214 22% 88%);
+    border-radius: 0.25rem;
+  }
+
+  /* ── Shadows — very restrained ─────────────────────────────── */
   .shadow-card {
-    box-shadow: 0 2px 8px -2px hsl(215 25% 15% / 0.08), 0 4px 16px -4px hsl(215 25% 15% / 0.06);
+    box-shadow: 0 1px 3px 0 rgba(22, 86, 173, 0.07), 0 1px 2px -1px rgba(22, 86, 173, 0.04);
   }
 
+  .shadow-panel {
+    box-shadow: 0 4px 12px -4px rgba(22, 86, 173, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  }
+
+  /* ── Legacy aliases still referenced in shared UI ─────────── */
   .shadow-elevated {
-    box-shadow: 0 8px 24px -4px hsl(215 25% 15% / 0.12), 0 16px 48px -8px hsl(215 25% 15% / 0.08);
+    box-shadow: 0 4px 12px -4px rgba(22, 86, 173, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  }
+
+  .gradient-primary {
+    background-color: #1656AD;
+  }
+
+  .page-shell {
+    background-color: #e8f0fc;
+  }
+
+  .hero-panel {
+    background-color: #1656AD;
+  }
+
+  .soft-panel {
+    background: #fff;
+    border: 1px solid hsl(214 22% 87%);
+  }
+
+  /* ── Typography helpers ─────────────────────────────────────── */
+  .label-caps {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: hsl(215 14% 44%);
+  }
+
+  .stat-value {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: hsl(218 40% 12%);
+  }
+
+  /* ── Interactive states ─────────────────────────────────────── */
+  .hover-row {
+    transition: background 120ms ease;
+  }
+
+  .hover-row:hover {
+    background: hsl(214 40% 97%);
+  }
+
+  .link-underline {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 150ms;
+  }
+
+  .link-underline:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* ── Status dots ────────────────────────────────────────────── */
+  .dot-live {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .dot-pending {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d97706;
+  }
+
+  .wandr-mascot-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 220px;
+    height: 130px;
+  }
+
+  .wandr-walker-svg {
+    width: 220px;
+    height: 130px;
+    /* overflow:hidden is essential — keeps tile B of each scrolling layer
+       hidden until the animation slides it into view from the right */
+    overflow: hidden;
+  }
+
+  .wandr-stroke {
+    stroke: rgba(255, 255, 255, 0.96);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .wandr-road-edge {
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1.5;
+  }
+
+  .wandr-bg-line {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .wandr-tree-trunk {
+    fill: #6f4e2d;
+  }
+
+  .wandr-tree-leaf {
+    fill: #2f6b3c;
+  }
+
+  .wandr-bush {
+    fill: #3f7a46;
+  }
+
+  /* Road dashes: 40px period, animates by -40px → seamless loop */
+  .wandr-road-scroll {
+    animation: wandr-road-scroll 1.1s linear infinite;
+    will-change: transform;
+  }
+
+  /* Scenery: 220px tile width, animates by -220px → seamless double-buffer loop */
+  .wandr-scenery-scroll {
+    animation: wandr-scenery-move 6s linear infinite;
+    will-change: transform;
+  }
+
+  .wandr-ground {
+    fill: rgba(7, 25, 55, 0.32);
+    transform-origin: 103px 108px;
+    animation: wandr-ground-breathe 0.95s ease-in-out infinite;
+  }
+
+  .wandr-walker-body {
+    transform-origin: 88px 66px;
+    animation: wandr-body-bob 0.95s ease-in-out infinite;
+  }
+
+  .wandr-arm-front {
+    transform-origin: 92px 42px;
+    animation: wandr-arm-front-swing 1.1s ease-in-out infinite;
+  }
+
+  .wandr-arm-back {
+    transform-origin: 92px 42px;
+    animation: wandr-arm-back-swing 1.1s ease-in-out infinite;
+  }
+
+  .wandr-leg-front {
+    transform-origin: 92px 66px;
+    animation: wandr-leg-front-swing 1.1s ease-in-out infinite;
+  }
+
+  .wandr-leg-back {
+    transform-origin: 92px 66px;
+    animation: wandr-leg-back-swing 1.1s ease-in-out infinite;
+  }
+
+  .wandr-suitcase-pull {
+    transform-origin: 127px 43px;
+    animation: wandr-suitcase-bob 1.1s ease-in-out infinite;
+  }
+
+  .wandr-wheel-left,
+  .wandr-wheel-right {
+    fill: rgba(255, 255, 255, 0.06);
+  }
+
+  .wandr-wheel-hub {
+    fill: rgba(255, 255, 255, 0.96);
   }
 }
 
+/* ── Keyframes ─────────────────────────────────────────────────── */
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes wandr-body-bob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-2px) rotate(1deg); }
+}
+
+@keyframes wandr-arm-front-swing {
+  0%, 100% { transform: rotate(6deg); }
+  50%      { transform: rotate(-6deg); }
+}
+
+@keyframes wandr-arm-back-swing {
+  0%, 100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(17deg); }
+}
+
+@keyframes wandr-leg-front-swing {
+  0%, 100% { transform: rotate(-18deg); }
+  50%      { transform: rotate(16deg); }
+}
+
+@keyframes wandr-leg-back-swing {
+  0%, 100% { transform: rotate(16deg); }
+  50%      { transform: rotate(-18deg); }
+}
+
+@keyframes wandr-suitcase-bob {
+  0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+  50%      { transform: translateY(0.5px) rotate(0.5deg); }
+}
+
+@keyframes wandr-ground-breathe {
+  0%, 100% { transform: scaleX(1); opacity: 0.32; }
+  50%      { transform: scaleX(0.93); opacity: 0.22; }
+}
+
+/* Road dashes move by exactly one dash period (-40px).  Because every 40px
+   of dashes is identical, the CSS animation reset is invisible. */
+@keyframes wandr-road-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-40px); }
+}
+
+/* Scenery moves by exactly one tile width (-220px = full SVG viewBox width).
+   Tile B is a pixel-perfect copy of tile A, so when the animation resets
+   from -220px back to 0px the view is indistinguishable → no gap, no jump. */
+@keyframes wandr-scenery-move {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-220px); }
 }
 
 .animate-slide-up {
-  animation: slideUp 0.4s ease-out;
+  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease both;
 }
