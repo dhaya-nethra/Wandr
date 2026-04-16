@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MapPin, Loader2, Navigation } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { LocationPermissionDialog } from './LocationPermissionDialog';
+import { reverseGeocodeCoordinates } from '@/lib/geocoding';
 
 // App-level location preference stored in localStorage
 const PERM_KEY = 'natpac_location_perm';
@@ -56,6 +57,7 @@ interface LocationPickerProps {
 
 export function LocationPicker({ label, value, onChange, error }: LocationPickerProps) {
   const { getCurrentLocation, isLoading, error: geoError } = useGeolocation();
+  const lookupInFlightRef = useRef(false);
   const [manualEntry, setManualEntry] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -207,6 +209,23 @@ export function LocationPicker({ label, value, onChange, error }: LocationPicker
 
   const storedPerm = readStoredPerm();
   const displayError = localError || geoError;
+
+  useEffect(() => {
+    if (!value || value.address || lookupInFlightRef.current) {
+      return;
+    }
+
+    lookupInFlightRef.current = true;
+    reverseGeocodeCoordinates(value.lat, value.lng)
+      .then((address) => {
+        if (address) {
+          onChange({ ...value, address });
+        }
+      })
+      .finally(() => {
+        lookupInFlightRef.current = false;
+      });
+  }, [value, onChange]);
 
   return (
     <div className="space-y-2">
