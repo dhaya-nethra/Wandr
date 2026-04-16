@@ -11,6 +11,7 @@ import { TravelModeIcon } from './TravelModeIcon';
 import { useTrips } from '@/hooks/useTrips';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
+import { reverseGeocodeCoordinates } from '@/lib/geocoding';
 import {
   TravelMode,
   TripPurpose,
@@ -27,6 +28,18 @@ interface Location {
   lat: number;
   lng: number;
   address?: string;
+}
+
+async function ensurePlaceName(location: Location): Promise<Location> {
+  if (location.address?.trim()) {
+    return location;
+  }
+
+  const resolved = await reverseGeocodeCoordinates(location.lat, location.lng);
+  return {
+    ...location,
+    address: resolved || location.address,
+  };
 }
 
 interface TripFormProps {
@@ -105,9 +118,12 @@ export function TripForm({ trip: existingTrip, onSuccess, forceCreateMode = fals
     }
     setIsSubmitting(true);
     try {
+      const resolvedOrigin = await ensurePlaceName(origin!);
+      const resolvedDestination = await ensurePlaceName(destination!);
+
       const data = {
-        origin: origin!,
-        destination: destination!,
+        origin: resolvedOrigin,
+        destination: resolvedDestination,
         startTime,
         endTime,
         mode: mode as TravelMode,
