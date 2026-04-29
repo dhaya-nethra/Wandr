@@ -60,5 +60,25 @@
       }
     ]
   },
-  "auditLog": []
+  "auditLog": [
+    {
+      "id": "mok438vv9vxz2k",
+      "timestamp": "2026-04-29T13:49:39.643Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "ADMIN_LOGIN",
+      "details": "Successful login",
+      "chainHash": "b9e1c080a4f1bf0f3188d57148d56d4eba357e20de4e2d13463dec81f2a18585"
+    },
+    {
+      "id": "mok438xv5n4r9i",
+      "timestamp": "2026-04-29T13:49:39.715Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "DATA_VIEW",
+      "details": "Loaded 1 participant records",
+      "chainHash": "4ef1ccfcf0827e69a689235ea0595c2a97f6a1084aa5513d0114446890b5146b"
+    }
+  ],
+  "adminUsers": []
 }
