@@ -163,7 +163,7 @@ export default function AdminAnalytics() {
             {
               icon: PieIcon,
               label: 'Avg Distance',
-              value: allTrips.length ? `${Math.round(allTrips.reduce((a, t) => a + t.distance, 0) / allTrips.length)} m` : '0 m',
+              value: allTrips.length ? `${Math.round(allTrips.reduce((a, t) => a + t.distance, 0) / allTrips.length)} km` : '0 km',
             },
           ].map(({ icon: Icon, label, value }) => (
             <Card key={label}>
@@ -267,7 +267,7 @@ export default function AdminAnalytics() {
               {/* Average distance per mode */}
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Average Trip Distance by Mode (metres)</CardTitle>
+                  <CardTitle className="text-sm">Average Trip Distance by Mode (km)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={240}>

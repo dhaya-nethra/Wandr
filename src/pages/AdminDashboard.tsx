@@ -315,7 +315,7 @@ export default function AdminDashboard() {
           {[
             { icon: Users, label: 'Participants', value: participants.length, sub: 'from backend' },
             { icon: MapPin, label: 'Total Trips', value: allTrips.length, sub: 'all participants' },
-            { icon: Activity, label: 'Total Distance', value: `${(totalDistance / 1000).toFixed(1)} km`, sub: 'combined' },
+            { icon: Activity, label: 'Total Distance', value: `${totalDistance.toFixed(1)} km`, sub: 'combined' },
             { icon: BarChart3, label: 'Total Cost', value: `₹${totalCost.toFixed(0)}`, sub: 'all modes' },
           ].map(({ icon: Icon, label, value, sub }) => (
             <Card key={label}>
@@ -438,7 +438,7 @@ export default function AdminDashboard() {
                                 {shard.hashedId.slice(0, 16)}…
                               </TableCell>
                               <TableCell className="text-right text-xs">{shard.trips.length}</TableCell>
-                              <TableCell className="text-right text-xs">{(dist / 1000).toFixed(2)} km</TableCell>
+                              <TableCell className="text-right text-xs">{dist.toFixed(2)} km</TableCell>
                               <TableCell className="text-right text-xs">₹{cost.toFixed(0)}</TableCell>
                               <TableCell className="text-xs text-muted-foreground">
                                 {new Date(shard.lastUpdated).toLocaleString()}

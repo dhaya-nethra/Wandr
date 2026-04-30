@@ -29,9 +29,9 @@ function createApp(options = {}) {
   const app = express();
 
   app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:8080',
-             'http://localhost:8081', 'http://localhost:3000',
-             'https://localhost:8081'],
+    origin: ['http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081', 
+             'http://localhost:8082', 'http://localhost:8083', 'http://localhost:3000',
+             'https://localhost:8081', 'https://localhost:8083'],
     credentials: true,
   }));
   app.use(express.json({ limit: '2mb' }));
