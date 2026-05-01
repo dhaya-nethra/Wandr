@@ -1,41 +1,55 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { useAuth } from './useAuth';
 
-const CONSENT_KEY = 'natpac_consent';
+export async function checkConsentStatus(participantId: string): Promise<boolean> {
+  const key = `natpac_consent_${participantId}`;
+  if (Capacitor.isNativePlatform()) {
+    const { value } = await Preferences.get({ key });
+    return value === 'true';
+  } else {
+    return localStorage.getItem(key) === 'true';
+  }
+}
 
 export function useConsent() {
+  const { participantId } = useAuth();
   const [hasConsent, setHasConsent] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      if (Capacitor.isNativePlatform()) {
-        const { value } = await Preferences.get({ key: CONSENT_KEY });
-        setHasConsent(value === 'true');
-      } else {
-        const stored = localStorage.getItem(CONSENT_KEY);
-        setHasConsent(stored === 'true');
+      if (!participantId) {
+        setHasConsent(false);
+        setIsLoading(false);
+        return;
       }
+      const granted = await checkConsentStatus(participantId);
+      setHasConsent(granted);
       setIsLoading(false);
     };
     load();
-  }, []);
+  }, [participantId]);
 
   const grantConsent = async () => {
+    if (!participantId) return;
+    const key = `natpac_consent_${participantId}`;
     if (Capacitor.isNativePlatform()) {
-      await Preferences.set({ key: CONSENT_KEY, value: 'true' });
+      await Preferences.set({ key, value: 'true' });
     } else {
-      localStorage.setItem(CONSENT_KEY, 'true');
+      localStorage.setItem(key, 'true');
     }
     setHasConsent(true);
   };
 
   const revokeConsent = async () => {
+    if (!participantId) return;
+    const key = `natpac_consent_${participantId}`;
     if (Capacitor.isNativePlatform()) {
-      await Preferences.remove({ key: CONSENT_KEY });
+      await Preferences.remove({ key });
     } else {
-      localStorage.removeItem(CONSENT_KEY);
+      localStorage.removeItem(key);
     }
     setHasConsent(false);
   };

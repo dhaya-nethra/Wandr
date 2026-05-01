@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Pure-JS JSON file store — no native addons required.
  * Data is persisted to natpac_data.json alongside this file.
  *
@@ -22,6 +22,7 @@ function defaultData() {
     trips: {},
     auditLog: [],
     adminUsers: [],
+    participantAuth: {},
   };
 }
 
@@ -38,6 +39,7 @@ function loadData() {
       trips: parsed?.trips || {},
       auditLog: Array.isArray(parsed?.auditLog) ? parsed.auditLog : [],
       adminUsers: Array.isArray(parsed?.adminUsers) ? parsed.adminUsers : [],
+      participantAuth: parsed?.participantAuth || {},
     };
   } catch {
     return defaultData();

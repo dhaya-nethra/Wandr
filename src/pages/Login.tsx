@@ -3,23 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { useConsent } from '@/hooks/useConsent';
+import { loginParticipant } from '@/lib/backendApi';
+import { checkConsentStatus } from '@/hooks/useConsent';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { hasConsent } = useConsent();
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('Enter your name or participant ID'); return; }
+    if (!password.trim()) { setError('Enter your password'); return; }
+    
     setIsLoading(true);
-    await login(name.trim());
-    navigate(hasConsent ? '/dashboard' : '/onboarding');
+    try {
+      await loginParticipant(name.trim(), password);
+      await login(name.trim());
+      const consented = await checkConsentStatus(name.trim());
+      navigate(consented ? '/dashboard' : '/onboarding');
+    } catch (err: any) {
+      setError(err.message || 'Invalid password');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,11 +71,24 @@ export default function Login() {
                 placeholder="e.g. Priya K. or NATPAC-2026-041"
                 value={name}
                 onChange={(e) => { setName(e.target.value); setError(''); }}
-                className={`h-11 rounded-sm text-[14px] ${error ? 'border-destructive' : ''}`}
+                className={`h-11 rounded-sm text-[14px] ${error && !name.trim() ? 'border-destructive' : ''}`}
                 autoFocus
               />
-              {error && <p className="text-[12px] text-destructive">{error}</p>}
             </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-[13px] font-medium">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                className={`h-11 rounded-sm text-[14px] ${error && !password.trim() ? 'border-destructive' : ''}`}
+              />
+            </div>
+
+            {error && <p className="text-[13px] font-medium text-destructive">{error}</p>}
 
             <button
               type="submit"

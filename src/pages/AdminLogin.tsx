@@ -18,7 +18,7 @@ import {
   User,
 } from 'lucide-react';
 
-const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2026-';
+const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2026-DEMO';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -153,7 +153,7 @@ export default function AdminLogin() {
                   type={showGovKey ? 'text' : 'password'}
                   value={govKey}
                   onChange={(e) => { setGovKey(e.target.value); clearError(); }}
-                  placeholder="NATPAC-KERALA-GOV-2026-"
+                  placeholder="NATPAC-KERALA-GOV-2026-DEMO"
                   className="pl-9 pr-10 h-11 rounded-sm text-[14px] font-mono"
                   required
                 />
