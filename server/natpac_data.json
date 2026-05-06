@@ -24,6 +24,11 @@
       "id": "20449b05148fa11ca13bdf9b8188649a0faff919bb00162b8d66aec1a2b0ec44",
       "alias": "DH2044",
       "createdAt": "2026-05-06T14:26:47.364Z"
+    },
+    "3b8b8bc2575ffa8f0da9598d16a1f457840b7b3129c7a9f1810367e0294a366e": {
+      "id": "3b8b8bc2575ffa8f0da9598d16a1f457840b7b3129c7a9f1810367e0294a366e",
+      "alias": "CH3B8B",
+      "createdAt": "2026-05-06T15:53:41.191Z"
     }
   },
   "trips": {
@@ -837,6 +842,96 @@
       "action": "ADMIN_LOGOUT",
       "details": "",
       "chainHash": "5762e35179985c0ae952eb4cf5d89e4cb110d5f316752a256f311bbd991c37da"
+    },
+    {
+      "id": "mou8mhb5d4wwps",
+      "timestamp": "2026-05-06T15:54:17.249Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "ADMIN_LOGIN",
+      "details": "Successful login",
+      "chainHash": "52465361043511eec699e7954cda878322e52f2a3cdd3a8155690875cffc6382"
+    },
+    {
+      "id": "mou8mhg4cjt4at",
+      "timestamp": "2026-05-06T15:54:17.428Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "DATA_VIEW",
+      "details": "Loaded 6 participant records",
+      "chainHash": "bd12e25c1ed139e28a4f26cd458bab443c567b942ee188a4c290e2bd900a4de9"
+    },
+    {
+      "id": "mou8n1019t28j6",
+      "timestamp": "2026-05-06T15:54:42.769Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "DATA_VIEW",
+      "details": "Loaded 6 participant records",
+      "chainHash": "92672b91ac59ff9b83f17e1a44cba4b75875ece699208b233ce6390f2a0f1b11"
+    },
+    {
+      "id": "mou8n4kkxwb1jj",
+      "timestamp": "2026-05-06T15:54:47.396Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "DATA_EXPORT_CSV",
+      "details": "natpac-trips-2026-05-06.csv",
+      "chainHash": "58899749268c2c1bec6bea80cb5ef83d9a83171a581b964b4494752e9a4d0c5a"
+    },
+    {
+      "id": "mou8nh1qv02522",
+      "timestamp": "2026-05-06T15:55:03.566Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "DATA_VIEW",
+      "details": "Loaded 6 participant records",
+      "chainHash": "3d320d19a99ed9a651a3df8657aaeb817bc30b4a72b2799c80e7e99062d0b9db"
+    },
+    {
+      "id": "mou8nicyb8lbvq",
+      "timestamp": "2026-05-06T15:55:05.266Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "ANALYTICS_VIEW",
+      "details": "",
+      "chainHash": "d8d20a63d519df0edaa3d41b6c6dc610fbcc514121b885fb576bf0961029dc1f"
+    },
+    {
+      "id": "mou8nmz7he01fa",
+      "timestamp": "2026-05-06T15:55:11.251Z",
+      "adminId": "fbf36187681cbe3d85ddf379e8fc5eb17853fecaab4431824eba2777206bf6c4",
+      "role": "ADMIN",
+      "action": "ADMIN_LOGOUT",
+      "details": "",
+      "chainHash": "46d073bf23c97dff88eac125874dfc0e5929d3079100ff4b1d9946cfdb816d1b"
+    },
+    {
+      "id": "mou8nokoabyxm8",
+      "timestamp": "2026-05-06T15:55:13.320Z",
+      "adminId": "9c42a3020771167dd5c9fdfc84e49e17a90af88ec9ffc15a603ca3f8c5a331a4",
+      "role": "SCIENTIST",
+      "action": "ADMIN_LOGIN",
+      "details": "Successful login",
+      "chainHash": "118293bb776763b93270b2cc187206e1348999838f03fb796abfd4ee8fc32b7e"
+    },
+    {
+      "id": "mou8nooo8j751v",
+      "timestamp": "2026-05-06T15:55:13.464Z",
+      "adminId": "9c42a3020771167dd5c9fdfc84e49e17a90af88ec9ffc15a603ca3f8c5a331a4",
+      "role": "ADMIN",
+      "action": "DATA_VIEW",
+      "details": "Loaded 6 participant records",
+      "chainHash": "4a1eb992e53b1d6d8ecb39a4b9c627719a4c85d0d25052f686bc6c215ba271ab"
+    },
+    {
+      "id": "mou8ntzxyo5r68",
+      "timestamp": "2026-05-06T15:55:20.349Z",
+      "adminId": "9c42a3020771167dd5c9fdfc84e49e17a90af88ec9ffc15a603ca3f8c5a331a4",
+      "role": "ADMIN",
+      "action": "ADMIN_LOGOUT",
+      "details": "",
+      "chainHash": "307d6da63eee9fe02fea27b9fbcb0d072756f255f7c63fe4316c507e46642c3e"
     }
   ],
   "adminUsers": [],
@@ -853,6 +948,7 @@
     "ce0f6c28b5869ff166714da5fe08554c70c731a335ff9702e38b00f81ad348c6": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
     "822e54d37dd37d83776ed8aac05e4578e8b201d8f3fa366bdc60b75228bc835f": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
     "4ecde249d747d51d869ae689c44cc1e6191b581b8315edac97990fdc4dce40d7": "8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414",
-    "20449b05148fa11ca13bdf9b8188649a0faff919bb00162b8d66aec1a2b0ec44": "8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414"
+    "20449b05148fa11ca13bdf9b8188649a0faff919bb00162b8d66aec1a2b0ec44": "8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414",
+    "3b8b8bc2575ffa8f0da9598d16a1f457840b7b3129c7a9f1810367e0294a366e": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
   }
 }
