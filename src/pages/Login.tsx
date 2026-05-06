@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,16 +9,23 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (!isAuthLoading && isLoggedIn) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isLoggedIn, isAuthLoading, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('Enter your name or participant ID'); return; }
     if (!password.trim()) { setError('Enter your password'); return; }
+    if (!/^\d{6}$/.test(password)) { setError('Password must be 6 digits'); return; }
     
     setIsLoading(true);
     try {
@@ -81,9 +88,11 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="6-digit PIN"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                onChange={(e) => { setPassword(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
                 className={`h-11 rounded-sm text-[14px] ${error && !password.trim() ? 'border-destructive' : ''}`}
               />
             </div>

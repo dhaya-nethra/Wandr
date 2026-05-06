@@ -100,8 +100,14 @@ export function TripForm({ trip: existingTrip, onSuccess, forceCreateMode = fals
     const newErrors: Record<string, string> = {};
     if (!origin || (origin.lat === 0 && origin.lng === 0)) newErrors.origin = 'Origin location is required';
     if (!destination || (destination.lat === 0 && destination.lng === 0)) newErrors.destination = 'Destination location is required';
+    if (origin && destination && origin.lat === destination.lat && origin.lng === destination.lng) {
+      newErrors.destination = 'Destination cannot be the same as origin';
+    }
     if (!startTime) newErrors.startTime = 'Start time is required';
     if (!endTime) newErrors.endTime = 'End time is required';
+    if (startTime && endTime && new Date(endTime) <= new Date(startTime)) {
+      newErrors.endTime = 'End time must be after start time';
+    }
     if (!mode) newErrors.mode = 'Travel mode is required';
     if (!distance || parseFloat(distance) <= 0) newErrors.distance = 'Valid distance is required';
     if (!purpose) newErrors.purpose = 'Trip purpose is required';
