@@ -42,6 +42,19 @@ function adminHeaders(): HeadersInit {
   };
 }
 
+export async function registerParticipant(participantId: string, password: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/participant/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantId, password }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Registration failed');
+  }
+}
+
 export async function loginParticipant(participantId: string, password: string): Promise<void> {
   const res = await fetch(`${SERVER_URL}/api/participant/login`, {
     method: 'POST',
@@ -51,7 +64,7 @@ export async function loginParticipant(participantId: string, password: string):
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || 'Invalid password');
+    throw new Error(body.error || 'Invalid username or password');
   }
 }
 
@@ -97,6 +110,15 @@ export async function deleteTrip(participantId: string, tripId: string): Promise
   });
   if (!res.ok && res.status !== 404) {
     throw new Error('Failed to delete trip');
+  }
+}
+
+export async function clearParticipantData(participantId: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/participant/data/${encodeURIComponent(participantId)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error('Failed to clear participant data');
   }
 }
 
