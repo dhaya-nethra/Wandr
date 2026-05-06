@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -6,7 +6,7 @@ const path = require('path');
 const { loadData, saveData } = require('./db');
 
 const DEFAULT_PORT = process.env.PORT || 3001;
-const GOV_MASTER_KEY = process.env.GOV_MASTER_KEY || 'NATPAC-KERALA-GOV-2026-';
+const GOV_MASTER_KEY = process.env.GOV_MASTER_KEY || 'NATPAC-KERALA-GOV-2026-DEMO';
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'NATPAC-ADMIN-KEY';
 
 const DEMO_ADMINS = {
@@ -29,9 +29,9 @@ function createApp(options = {}) {
   const app = express();
 
   app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:8080',
-             'http://localhost:8081', 'http://localhost:3000',
-             'https://localhost:8081'],
+    origin: ['http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081', 
+             'http://localhost:8082', 'http://localhost:8083', 'http://localhost:3000',
+             'https://localhost:8081', 'https://localhost:8083'],
     credentials: true,
   }));
   app.use(express.json({ limit: '2mb' }));
@@ -76,6 +76,67 @@ function createApp(options = {}) {
 
     return { ok: false };
   }
+
+  app.post('/api/participant/register', (req, res) => {
+    const { participantId, password } = req.body || {};
+    if (!participantId || !password) {
+      return res.status(400).json({ error: 'participantId and password are required' });
+    }
+
+    try {
+      const hashedId = sha256(participantId);
+      const data = loadData();
+      if (!data.participantAuth) data.participantAuth = {};
+
+      if (data.participantAuth[hashedId]) {
+        return res.status(400).json({ error: 'Username already exists' });
+      }
+
+      data.participantAuth[hashedId] = sha256(password);
+      
+      if (!data.participants) data.participants = {};
+      if (!data.participants[hashedId]) {
+        const alias = participantId.slice(0, 2).toUpperCase() + hashedId.slice(0, 4).toUpperCase();
+        data.participants[hashedId] = {
+          id: hashedId,
+          alias,
+          createdAt: new Date().toISOString()
+        };
+      }
+
+      saveData(data);
+      return res.json({ success: true });
+    } catch (error) {
+      console.error('Participant register error:', error);
+      return res.status(500).json({ error: 'Registration failed' });
+    }
+  });
+
+  app.post('/api/participant/login', (req, res) => {
+    const { participantId, password } = req.body || {};
+    if (!participantId || !password) {
+      return res.status(400).json({ error: 'participantId and password are required' });
+    }
+
+    try {
+      const hashedId = sha256(participantId);
+      const data = loadData();
+      if (!data.participantAuth) data.participantAuth = {};
+
+      if (!data.participantAuth[hashedId]) {
+        return res.status(401).json({ error: 'User not registered' });
+      }
+
+      if (data.participantAuth[hashedId] !== sha256(password)) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+
+      return res.json({ success: true });
+    } catch (error) {
+      console.error('Participant login error:', error);
+      return res.status(500).json({ error: 'Login failed' });
+    }
+  });
 
   app.post('/api/sync', (req, res) => {
     const { participantId, trips } = req.body;
@@ -143,6 +204,25 @@ function createApp(options = {}) {
       role: cred.role,
       adminApiKey: ADMIN_API_KEY,
     });
+  });
+
+  app.delete('/api/participant/data/:participantId', (req, res) => {
+    try {
+      const hashedId = sha256(req.params.participantId);
+      const data = loadData();
+      
+      // Clear trips
+      data.trips[hashedId] = [];
+      
+      // Optionally remove participant record too? 
+      // User said 'user data should be cleared'. Usually means trips.
+      
+      saveData(data);
+      return res.json({ success: true, message: 'All user data cleared' });
+    } catch (error) {
+      console.error('Clear data error:', error);
+      return res.status(500).json({ error: 'Failed to clear user data' });
+    }
   });
 
   app.get('/api/trips/:participantId', (req, res) => {

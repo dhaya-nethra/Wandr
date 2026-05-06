@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Trip } from '@/types/trip';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { fetchTrips, syncTrips, deleteTrip as deleteTripOnServer } from '@/lib/backendApi';
+import { fetchTrips, syncTrips, deleteTrip as deleteTripOnServer, clearParticipantData } from '@/lib/backendApi';
 
 const AUTH_KEY = 'natpac_participant_id';
 const TRIPS_CACHE_PREFIX = 'natpac_trips_cache_';
@@ -165,8 +165,13 @@ export function useTrips() {
     if (!pid) return;
 
     setTrips([]);
-    await persistAndSyncTrips(pid, [], { skipDeleteEndpoint: true });
-  }, [resolveActiveParticipantId, persistAndSyncTrips]);
+    await saveCachedTrips(pid, []);
+    try {
+      await clearParticipantData(pid);
+    } catch (e) {
+      console.error('Failed to clear server data:', e);
+    }
+  }, [resolveActiveParticipantId]);
 
   return {
     trips,

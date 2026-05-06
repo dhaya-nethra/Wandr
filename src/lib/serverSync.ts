@@ -4,7 +4,8 @@
  */
 import { Trip } from '@/types/trip';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const useProxy = typeof window !== 'undefined' && window.location.protocol.startsWith('http') && import.meta.env.DEV;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'http://localhost:3001');
 
 export async function syncTripsToServer(
   participantId: string,

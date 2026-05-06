@@ -3,11 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { loginParticipant } from '@/lib/backendApi';
+import { registerParticipant } from '@/lib/backendApi';
 import { checkConsentStatus } from '@/hooks/useConsent';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
-export default function Login() {
+export default function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [name, setName] = useState('');
@@ -15,19 +15,19 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('Enter your name or participant ID'); return; }
-    if (!password.trim()) { setError('Enter your password'); return; }
+    if (!password.trim()) { setError('Enter a password'); return; }
     
     setIsLoading(true);
     try {
-      await loginParticipant(name.trim(), password);
+      await registerParticipant(name.trim(), password);
       await login(name.trim());
       const consented = await checkConsentStatus(name.trim());
       navigate(consented ? '/dashboard' : '/onboarding');
     } catch (err: any) {
-      setError(err.message || 'Invalid username or password');
+      setError(err.message || 'Registration failed');
       setIsLoading(false);
     }
   };
@@ -48,7 +48,7 @@ export default function Login() {
             Wandr
           </h1>
           <p className="mt-4 text-[14px] leading-6 text-blue-100/80 max-w-xs">
-            Log your daily journeys and contribute to Kerala's transport planning research.
+            Join the Kerala transport planning research by registering a new account.
           </p>
         </div>
         <p className="hidden md:block text-[11px] text-blue-300/60 uppercase tracking-widest mt-12">
@@ -59,10 +59,10 @@ export default function Login() {
       {/* Right — form */}
       <div className="flex flex-col justify-center flex-1 px-8 py-12">
         <div className="max-w-sm w-full mx-auto md:mx-0">
-          <h2 className="font-display text-2xl font-bold text-foreground mb-1">Sign in</h2>
-          <p className="text-[13px] text-muted-foreground mb-8">Enter your name or the ID issued to you by NATPAC.</p>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-1">Sign up</h2>
+          <p className="text-[13px] text-muted-foreground mb-8">Create a new participant account to start logging trips.</p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleSignup} className="space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-[13px] font-medium">Name or Participant ID</Label>
               <Input
@@ -77,7 +77,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-[13px] font-medium">Password</Label>
+              <Label htmlFor="password" className="text-[13px] font-medium">Create Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -99,16 +99,16 @@ export default function Login() {
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
                 <>
-                  Continue <ArrowRight className="h-4 w-4" />
+                  Create Account <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-[13px] text-center text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary font-medium hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary font-medium hover:underline">
+              Sign in
             </Link>
           </div>
 

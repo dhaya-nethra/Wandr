@@ -31,7 +31,8 @@ export interface ManagedAdminUser {
   addedBy: string;
 }
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const useProxy = typeof window !== 'undefined' && window.location.protocol.startsWith('http') && import.meta.env.DEV;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'http://localhost:3001');
 const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || 'NATPAC-ADMIN-KEY';
 
 function adminHeaders(): HeadersInit {
@@ -39,6 +40,32 @@ function adminHeaders(): HeadersInit {
     'Content-Type': 'application/json',
     'x-admin-key': ADMIN_API_KEY,
   };
+}
+
+export async function registerParticipant(participantId: string, password: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/participant/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantId, password }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Registration failed');
+  }
+}
+
+export async function loginParticipant(participantId: string, password: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/participant/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantId, password }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Invalid username or password');
+  }
 }
 
 export async function loginAdmin(username: string, password: string, govKey: string): Promise<{ role: AdminRole }> {
@@ -83,6 +110,15 @@ export async function deleteTrip(participantId: string, tripId: string): Promise
   });
   if (!res.ok && res.status !== 404) {
     throw new Error('Failed to delete trip');
+  }
+}
+
+export async function clearParticipantData(participantId: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/participant/data/${encodeURIComponent(participantId)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error('Failed to clear participant data');
   }
 }
 

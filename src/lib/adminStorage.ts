@@ -23,7 +23,7 @@ const CENTRAL_KEY = 'natpac_central_store';
 
 // In production this would NEVER be in client code — it would live in an HSM.
 // For the demo, we hard-code the key so admins can enter it at login.
-export const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2026-';
+export const DEMO_MASTER_KEY = 'NATPAC-KERALA-GOV-2026-DEMO';
 
 export interface ParticipantShard {
   participantAlias: string;

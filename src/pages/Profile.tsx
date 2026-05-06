@@ -9,6 +9,17 @@ import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { User, Shield, Database, MapPin, ExternalLink, LogOut, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -129,13 +140,34 @@ export default function Profile() {
               Your travel data is anonymized and used solely for transportation 
               research by NATPAC. You can revoke consent at any time.
             </p>
-            <Button
-              variant="outline"
-              className="w-full text-destructive hover:text-destructive"
-              onClick={handleRevokeConsent}
-            >
-              Revoke Consent & Clear Data
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive"
+                >
+                  Revoke Consent & Clear Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action will revoke your research consent and permanently delete all your trip data from our servers. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleRevokeConsent}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, delete my data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button
               variant="outline"
               className="w-full gap-2"

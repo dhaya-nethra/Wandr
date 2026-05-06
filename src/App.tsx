@@ -15,6 +15,7 @@ import ActiveTrip from "./pages/ActiveTrip";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/AdminAnalytics";
+import Signup from "./pages/Signup";
 import { AdminAuthProvider, useAdminAuth } from "./hooks/useAdminAuth";
 import { AdminSecretTrigger } from "./components/AdminSecretTrigger";
 
@@ -39,6 +40,7 @@ const App = () => (
             {/* ── Participant routes ── */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-trip" element={<NewTrip />} />
