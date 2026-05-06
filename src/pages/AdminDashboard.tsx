@@ -10,6 +10,8 @@ import {
   ManagedAdminUser,
   removeAdminUser,
   saveAdminUser,
+  updateAdminUser,
+  revokeParticipantConsent,
   ServerParticipant,
   AdminAuditEntry,
 } from '@/lib/backendApi';
@@ -55,7 +57,7 @@ import { TravelModeIcon } from '@/components/trips/TravelModeIcon';
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN:       'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-  SCIENTIST:   'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  RESEARCHER:   'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
 };
 
 const TRAVEL_MODE_LABELS: Record<string, string> = {
@@ -64,7 +66,7 @@ const TRAVEL_MODE_LABELS: Record<string, string> = {
   metro: 'Metro', car: 'Car', taxi: 'Taxi/Cab', other: 'Other',
 };
 
-const MANAGED_ADMIN_ROLES = ['ADMIN', 'SCIENTIST'] as const;
+const MANAGED_ADMIN_ROLES = ['ADMIN', 'RESEARCHER'] as const;
 
 type ManagedAdminRole = (typeof MANAGED_ADMIN_ROLES)[number];
 
@@ -79,7 +81,10 @@ export default function AdminDashboard() {
   const { session, isAuthenticated, logout } = useAdminAuth();
   const [participants, setParticipants] = useState<ServerParticipant[]>([]);
   const [auditLog, setAuditLog] = useState<AdminAuditEntry[]>([]);
+  const [allAuditLog, setAllAuditLog] = useState<AdminAuditEntry[]>([]);
   const [auditValid, setAuditValid] = useState<boolean | null>(null);
+  const [auditDateFrom, setAuditDateFrom] = useState('');
+  const [auditDateTo, setAuditDateTo] = useState('');
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -90,7 +95,11 @@ export default function AdminDashboard() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const hasFilters = filterMode !== 'all' || filterPurpose !== 'all' || filterParticipant || filterDateFrom || filterDateTo;
-  const isResearcher = session?.role === 'SCIENTIST';
+  
+  // Search state for Participants tab
+  const [participantSearch, setParticipantSearch] = useState('');
+  
+  const isResearcher = session?.role === 'RESEARCHER';
   const canViewParticipantIds = !isResearcher;
   const canManageAdmins = !isResearcher;
   const canViewAudit = !isResearcher;
@@ -98,7 +107,8 @@ export default function AdminDashboard() {
   const [managedUsers, setManagedUsers] = useState<ManagedAdminUser[]>([]);
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
-  const [newAdminRole, setNewAdminRole] = useState<ManagedAdminRole>('SCIENTIST');
+  const [newAdminRole, setNewAdminRole] = useState<ManagedAdminRole>('RESEARCHER');
+  const [editingUser, setEditingUser] = useState<string | null>(null);
 
   const verifyAuditChain = useCallback(async (entries: AdminAuditEntry[]): Promise<boolean> => {
     let prevHash = '0'.repeat(64);
@@ -126,6 +136,7 @@ export default function AdminDashboard() {
       setParticipants(loadedParticipants);
 
       const logs = await fetchAdminAuditLog();
+      setAllAuditLog(logs);
       setAuditLog(logs);
       setAuditValid(await verifyAuditChain(logs));
 
@@ -171,21 +182,34 @@ export default function AdminDashboard() {
     }
 
     try {
-      await saveAdminUser({
-        username,
-        password,
-        role: newAdminRole,
-        addedAt: new Date().toISOString(),
-        addedBy: session.adminId,
-      });
+      if (editingUser) {
+        // Update existing user
+        await updateAdminUser({
+          username,
+          password,
+          role: newAdminRole,
+          addedAt: new Date().toISOString(),
+          addedBy: session.adminId,
+        });
+      } else {
+        await saveAdminUser({
+          username,
+          password,
+          role: newAdminRole,
+          addedAt: new Date().toISOString(),
+          addedBy: session.adminId,
+        });
+      }
       const users = await fetchAdminUsers();
       setManagedUsers(users as ManagedAdminUser[]);
       setNewAdminUsername('');
       setNewAdminPassword('');
-      setNewAdminRole('SCIENTIST');
-      toast.success('Admin account saved');
+      setNewAdminRole('RESEARCHER');
+      setEditingUser(null);
+      const message = editingUser ? 'Password changed' : 'Account saved';
+      toast.success(message);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to save admin account');
+      toast.error(e instanceof Error ? e.message : 'Failed to save account');
     }
   };
 
@@ -194,9 +218,20 @@ export default function AdminDashboard() {
       await removeAdminUser(username);
       const users = await fetchAdminUsers();
       setManagedUsers(users as ManagedAdminUser[]);
-      toast.success('Admin account removed');
+      toast.success('Account removed');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to remove admin account');
+      toast.error(e instanceof Error ? e.message : 'Failed to remove account');
+    }
+  };
+
+  const handleRevokeParticipantConsent = async (participantAlias: string) => {
+    try {
+      await revokeParticipantConsent(participantAlias);
+      const loadedParticipants = await fetchAdminParticipants();
+      setParticipants(loadedParticipants);
+      toast.success('Consent revoked');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to revoke consent');
     }
   };
 
@@ -237,7 +272,7 @@ export default function AdminDashboard() {
 
   // Export functions
   const exportJSON = async () => {
-    if (session?.role === 'SCIENTIST') {
+    if (session?.role === 'RESEARCHER') {
       // Anonymised export
       const data = participants.map((s) => ({
         participantAlias: s.participantAlias,
@@ -250,7 +285,15 @@ export default function AdminDashboard() {
       download(JSON.stringify(data, null, 2), 'natpac-all-data', 'json');
     }
     const hashedUser = await sha256Hex(session!.adminId);
-    await appendAdminAudit({ adminId: hashedUser, role: session!.role, action: 'DATA_EXPORT_JSON' });
+    const filename = `natpac-anonymised-${new Date().toISOString().slice(0,10)}.json`;
+    await appendAdminAudit({ adminId: hashedUser, role: session!.role, action: 'DATA_EXPORT_JSON', details: filename });
+    // Refresh audit log display
+    try {
+      const logs = await fetchAdminAuditLog();
+      setAllAuditLog(logs);
+      setAuditLog(logs);
+      setAuditValid(await verifyAuditChain(logs));
+    } catch {}
     toast.success('JSON export complete');
   };
 
@@ -275,8 +318,30 @@ export default function AdminDashboard() {
     download(csv, 'natpac-trips', 'csv');
 
     const hashedUser = await sha256Hex(session!.adminId);
-    await appendAdminAudit({ adminId: hashedUser, role: session!.role, action: 'DATA_EXPORT_CSV' });
+    const filename = `natpac-trips-${new Date().toISOString().slice(0,10)}.csv`;
+    await appendAdminAudit({ adminId: hashedUser, role: session!.role, action: 'DATA_EXPORT_CSV', details: filename });
+    // Refresh audit log display
+    try {
+      const logs = await fetchAdminAuditLog();
+      setAllAuditLog(logs);
+      setAuditLog(logs);
+      setAuditValid(await verifyAuditChain(logs));
+    } catch {}
     toast.success('CSV export complete');
+  };
+
+  const handleFilterAudit = () => {
+    if (!auditDateFrom && !auditDateTo) {
+      setAuditLog(allAuditLog);
+      return;
+    }
+    const from = auditDateFrom ? new Date(auditDateFrom) : new Date('1970-01-01');
+    const to = auditDateTo ? new Date(auditDateTo + 'T23:59:59.999Z') : new Date('9999-12-31');
+    const filtered = allAuditLog.filter((e) => {
+      const ts = new Date(e.timestamp);
+      return ts >= from && ts <= to;
+    });
+    setAuditLog(filtered);
   };
 
   function download(content: string, name: string, ext: string) {
@@ -384,11 +449,30 @@ export default function AdminDashboard() {
           {!isResearcher && (
           <TabsContent value="participants" className="mt-4">
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-2 space-y-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Lock className="h-4 w-4 text-yellow-500" />
                   Participant Data (Encrypted at Rest)
                 </CardTitle>
+                {/* Search by Alias */}
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Search by Alias..."
+                    value={participantSearch}
+                    onChange={(e) => setParticipantSearch(e.target.value)}
+                    className="h-8 text-xs w-48"
+                  />
+                  {participantSearch && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      onClick={() => setParticipantSearch('')}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[420px]">
@@ -398,6 +482,7 @@ export default function AdminDashboard() {
                         <TableHead className="text-xs">Alias</TableHead>
                         {canViewParticipantIds && <TableHead className="text-xs">Participant ID</TableHead>}
                         <TableHead className="text-xs">Shard ID (SHA-256)</TableHead>
+                        <TableHead className="text-xs">Consent</TableHead>
                         <TableHead className="text-xs text-right">Trips</TableHead>
                         <TableHead className="text-xs text-right">Distance</TableHead>
                         <TableHead className="text-xs text-right">Cost</TableHead>
@@ -409,19 +494,20 @@ export default function AdminDashboard() {
                       {isLoadingData ? (
                         Array.from({ length: 4 }).map((_, i) => (
                           <TableRow key={i}>
-                            {Array.from({ length: canViewParticipantIds ? 8 : 7 }).map((_, j) => (
+                            {Array.from({ length: canViewParticipantIds ? 9 : 8 }).map((_, j) => (
                               <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                             ))}
                           </TableRow>
                         ))
-                      ) : participants.length === 0 ? (
+                      ) : participants.filter((p) => participantSearch === '' || p.participantAlias.includes(participantSearch)).length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={canViewParticipantIds ? 8 : 7} className="text-center text-muted-foreground text-sm py-10">
-                            No participant data found yet. Ask a participant to sign in or record a trip first.
+                          <TableCell colSpan={canViewParticipantIds ? 9 : 8} className="text-center text-muted-foreground text-sm py-10">
+                            {participantSearch ? 'No participants match your search.' : 'No participant data found yet. Ask a participant to sign in or record a trip first.'}
                           </TableCell>
                         </TableRow>
                       ) : (
-                        participants.map((shard) => {
+                        participants.filter((p) => participantSearch === '' || p.participantAlias.includes(participantSearch)).map((shard) => {
+                          const isRevoked = shard.consentStatus === 'revoked';
                           const dist = shard.trips.reduce((a, t) => a + t.distance, 0);
                           const cost = shard.trips.reduce((a, t) => a + t.cost, 0);
                           const modes = shard.trips.reduce<Record<string, number>>((a, t) => {
@@ -429,13 +515,22 @@ export default function AdminDashboard() {
                           }, {});
                           const topMode = Object.entries(modes).sort((a, b) => b[1] - a[1])[0]?.[0];
                           return (
-                            <TableRow key={shard.hashedId} className="hover:bg-slate-50">
-                              <TableCell className="font-mono text-xs font-medium">{shard.participantAlias}</TableCell>
+                            <TableRow key={shard.hashedId} className={`hover:bg-slate-50 ${isRevoked ? 'bg-red-50/50' : ''}`}>
+                              <TableCell className={`font-mono text-xs font-medium ${isRevoked ? 'text-red-600' : ''}`}>
+                                {isRevoked ? '🔒 ' : ''}{shard.participantAlias}
+                              </TableCell>
                               {canViewParticipantIds && (
-                                <TableCell className="font-medium text-xs">{shard.participantId}</TableCell>
+                                <TableCell className={`font-medium text-xs ${isRevoked ? 'text-red-600' : ''}`}>
+                                  {isRevoked ? 'Private/Inactive' : shard.participantId}
+                                </TableCell>
                               )}
-                              <TableCell className="font-mono text-xs text-muted-foreground">
-                                {shard.hashedId.slice(0, 16)}…
+                              <TableCell className={`font-mono text-xs text-muted-foreground ${isRevoked ? 'line-through' : ''}`}>
+                                {isRevoked ? '—' : shard.hashedId.slice(0, 16) + '…'}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={`text-xs ${shard.consentStatus === 'revoked' ? 'bg-red-100 text-red-800' : shard.consentStatus === 'yes' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                  {shard.consentStatus === 'revoked' ? 'Revoked' : shard.consentStatus === 'yes' ? 'Yes' : 'No'}
+                                </Badge>
                               </TableCell>
                               <TableCell className="text-right text-xs">{shard.trips.length}</TableCell>
                               <TableCell className="text-right text-xs">{dist.toFixed(2)} km</TableCell>
@@ -444,7 +539,7 @@ export default function AdminDashboard() {
                                 {new Date(shard.lastUpdated).toLocaleString()}
                               </TableCell>
                               <TableCell className="text-xs">
-                                {topMode ? (
+                                {topMode && !isRevoked ? (
                                   <Badge variant="secondary" className="text-xs">{TRAVEL_MODE_LABELS[topMode] ?? topMode}</Badge>
                                 ) : '—'}
                               </TableCell>
@@ -629,6 +724,13 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[420px]">
+                  <div className="p-3 flex items-center gap-2">
+                    <Input type="date" className="h-8 text-xs w-40" value={auditDateFrom} onChange={(e) => setAuditDateFrom(e.target.value)} />
+                    <span className="text-xs text-muted-foreground">–</span>
+                    <Input type="date" className="h-8 text-xs w-40" value={auditDateTo} onChange={(e) => setAuditDateTo(e.target.value)} />
+                    <Button size="sm" variant="outline" className="h-8 text-xs ml-2" onClick={handleFilterAudit}>Filter</Button>
+                    <Button size="sm" variant="ghost" className="h-8 text-xs ml-2" onClick={() => { setAuditDateFrom(''); setAuditDateTo(''); setAuditLog(allAuditLog); }}>Clear</Button>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50">
@@ -703,7 +805,7 @@ export default function AdminDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleAddManagedUser} className="h-8 text-xs">Save Admin Account</Button>
+                <Button onClick={handleAddManagedUser} className="h-8 text-xs">Save Account</Button>
               </CardContent>
             </Card>
 
@@ -737,14 +839,21 @@ export default function AdminDashboard() {
                           <TableCell className="text-xs text-muted-foreground">{user.addedBy}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{new Date(user.addedAt).toLocaleString()}</TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs"
-                              onClick={() => handleRemoveManagedUser(user.username)}
-                            >
-                              Remove
-                            </Button>
+                            <div className="flex items-center gap-2 justify-end">
+                              <Button size="sm" className="h-7 text-xs" onClick={() => {
+                                setNewAdminUsername(user.username);
+                                setNewAdminRole(user.role as ManagedAdminRole);
+                                setEditingUser(user.username);
+                              }}>Change Password</Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() => handleRemoveManagedUser(user.username)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))

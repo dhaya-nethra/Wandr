@@ -48,7 +48,7 @@ const App = () => (
             <Route path="/trips" element={<TripHistory />} />
             <Route path="/profile" element={<Profile />} />
 
-            {/* ── Government admin / scientist portal ── */}
+            {/* ── Government admin / researcher portal ── */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={
               <ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>

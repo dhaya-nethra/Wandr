@@ -52,7 +52,7 @@ export default function AdminAnalytics() {
   const { session, isAuthenticated } = useAdminAuth();
   const [participants, setParticipants] = useState<ServerParticipant[]>([]);
   const [loading, setLoading] = useState(false);
-  const isResearcher = session?.role === 'SCIENTIST';
+  const isResearcher = session?.role === 'RESEARCHER';
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/admin/login');
@@ -329,7 +329,7 @@ export default function AdminAnalytics() {
                   <strong>Privacy note:</strong> Charts show only aggregate statistics.
                   Individual participant identities are replaced with anonymised aliases (P-XXXXXXXX).
                   No personally identifiable information is displayed or exported by the analytics engine.
-                  {session.role === 'SCIENTIST' && ' • Scientist role: raw participant records are not accessible.'}
+                  {session.role === 'RESEARCHER' && ' • Researcher role: raw participant records are not accessible.'}
                 </p>
               </CardContent>
             </Card>

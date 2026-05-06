@@ -1,9 +1,9 @@
 /**
- * Admin authentication hook for NATPAC scientists & government administrators.
+ * Admin authentication hook for NATPAC researchers & government administrators.
  *
  * Role hierarchy:
  *   ADMIN       – Full access, can manage other admins, view raw data
- *   SCIENTIST   – Anonymised/aggregated data only; no raw participant IDs
+ *   RESEARCHER  – Anonymised/aggregated data only; no raw participant IDs
  *
  * Session is stored in sessionStorage (cleared when browser tab closes).
  * Credentials are never stored; the government master key is held in memory only.
@@ -13,7 +13,7 @@ import { createContext, createElement, useState, useEffect, useCallback, useCont
 import { sha256Hex } from '@/lib/crypto';
 import { appendAdminAudit, loginAdmin } from '@/lib/backendApi';
 
-export type AdminRole = 'ADMIN' | 'SCIENTIST';
+export type AdminRole = 'ADMIN' | 'RESEARCHER';
 
 export interface AdminSession {
   adminId: string;          // username (plain, in-memory only)
@@ -41,7 +41,7 @@ interface AdminAuthContextValue {
 }
 
 function normalizeRole(role: string): AdminRole {
-  return role === 'SCIENTIST' ? 'SCIENTIST' : 'ADMIN';
+  return role === 'RESEARCHER' ? 'RESEARCHER' : 'ADMIN';
 }
 
 const SESSION_KEY = 'natpac_admin_session_meta'; // Only stores non-sensitive session metadata

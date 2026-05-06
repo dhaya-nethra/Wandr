@@ -188,7 +188,7 @@ const ADMIN_USERS_KEY = 'natpac_admin_users';
 export interface StoredAdminUser {
   username: string;
   password: string;   // Plain-text for demo; in production would be hashed
-  role: 'ADMIN' | 'SCIENTIST';
+  role: 'ADMIN' | 'RESEARCHER';
   addedAt: string;
   addedBy: string;
 }
@@ -198,7 +198,7 @@ export function getStoredAdminUsers(): StoredAdminUser[] {
     const users = JSON.parse(localStorage.getItem(ADMIN_USERS_KEY) || '[]') as Array<Omit<StoredAdminUser, 'role'> & { role: string }>;
     return users.map((user) => ({
       ...user,
-      role: user.role === 'SCIENTIST' ? 'SCIENTIST' : 'ADMIN',
+      role: user.role === 'RESEARCHER' ? 'RESEARCHER' : 'ADMIN',
     }));
   } catch {
     return [];

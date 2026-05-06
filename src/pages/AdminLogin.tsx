@@ -51,10 +51,10 @@ export default function AdminLogin() {
     await submitCredentials(username, password, govKey);
   };
 
-  const fillDemo = async (role: 'admin' | 'scientist') => {
+  const fillDemo = async (role: 'admin' | 'researcher') => {
     const creds = {
-      admin:     { u: 'natpac_admin',     p: 'NATPAC@Kerala2024' },
-      scientist: { u: 'natpac_scientist', p: 'Science@Kerala24' },
+      admin:      { u: 'natpac_admin',     p: 'NATPAC@Kerala2024' },
+      researcher: { u: 'natpac_scientist', p: 'Science@Kerala24' },
     }[role];
     setUsername(creds.u);
     setPassword(creds.p);
@@ -183,8 +183,8 @@ export default function AdminLogin() {
             <p className="label-caps mb-3">Demo credentials (dev only)</p>
             <div className="space-y-2">
               {[
-                { role: 'admin' as const,     label: 'NATPAC Admin',  desc: 'Full data + admin mgmt' },
-                { role: 'scientist' as const, label: 'Researcher',    desc: 'Aggregated view only'  },
+                { role: 'admin' as const,      label: 'NATPAC Admin',  desc: 'Full data + admin mgmt' },
+                { role: 'researcher' as const, label: 'Researcher',    desc: 'Aggregated view only'  },
               ].map((item) => (
                 <button key={item.role} type="button" onClick={() => fillDemo(item.role)}
                   className="hover-row w-full flex items-center justify-between rounded-sm border border-border px-3 py-2.5 text-left text-[13px] transition-colors"

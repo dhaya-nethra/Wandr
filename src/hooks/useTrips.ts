@@ -3,6 +3,7 @@ import { Trip } from '@/types/trip';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import { fetchTrips, syncTrips, deleteTrip as deleteTripOnServer, clearParticipantData } from '@/lib/backendApi';
+import { useConsent } from '@/hooks/useConsent';
 
 const AUTH_KEY = 'natpac_participant_id';
 const TRIPS_CACHE_PREFIX = 'natpac_trips_cache_';
@@ -62,6 +63,7 @@ export function useTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [participantId, setParticipantId] = useState<string | null>(null);
+  const { hasConsent } = useConsent();
 
   useEffect(() => {
     resolveParticipantId().then(async (pid) => {
@@ -105,7 +107,7 @@ export function useTrips() {
       if (!options?.skipDeleteEndpoint && options?.deletedTripId) {
         await deleteTripOnServer(participantStorageKey(pid), options.deletedTripId);
       }
-      await syncTrips(participantStorageKey(pid), nextTrips);
+      await syncTrips(participantStorageKey(pid), nextTrips, hasConsent === true);
       const syncedTrips = markTripsSynced(nextTrips, true);
       setTrips(syncedTrips);
       await saveCachedTrips(pid, syncedTrips);
@@ -117,7 +119,7 @@ export function useTrips() {
       await saveCachedTrips(pid, unsyncedTrips);
       return unsyncedTrips;
     }
-  }, []);
+  }, [hasConsent]);
 
   const saveTrip = useCallback(async (
     trip: Omit<Trip, 'id' | 'tripNumber' | 'createdAt'>

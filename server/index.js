@@ -16,7 +16,7 @@ const DEMO_ADMINS = {
   },
   natpac_scientist: {
     password: 'Science@Kerala24',
-    role: 'SCIENTIST',
+    role: 'RESEARCHER',
   },
 };
 
@@ -139,7 +139,7 @@ function createApp(options = {}) {
   });
 
   app.post('/api/sync', (req, res) => {
-    const { participantId, trips } = req.body;
+    const { participantId, trips, hasConsent } = req.body;
     if (!participantId || !Array.isArray(trips)) {
       return res.status(400).json({ error: 'participantId and trips array are required' });
     }
@@ -153,6 +153,8 @@ function createApp(options = {}) {
         id: hashedId,
         alias,
         createdAt: data.participants[hashedId]?.createdAt ?? new Date().toISOString(),
+        consentStatus: hasConsent === false ? 'no' : 'yes',
+        lastConsentUpdate: new Date().toISOString(),
       };
 
       const existing = data.trips[hashedId] ?? [];
@@ -266,16 +268,41 @@ function createApp(options = {}) {
         participantId: participant.id,
         hashedId: participant.id,
         participantAlias: participant.alias,
+        consentStatus: participant.consentStatus ?? 'yes',
         lastUpdated: (data.trips[participant.id] ?? []).reduce((latest, trip) => {
           const timestamp = trip.syncedAt || trip.createdAt || latest;
           return timestamp > latest ? timestamp : latest;
         }, participant.createdAt),
-        trips: data.trips[participant.id] ?? [],
+        trips: participant.consentStatus === 'revoked' ? [] : (data.trips[participant.id] ?? []),
       }));
       return res.json({ participants: result });
     } catch (error) {
       console.error('Admin participants error:', error);
       return res.status(500).json({ error: 'Failed to retrieve participants' });
+    }
+  });
+
+  // Revoke participant consent from admin side
+  app.post('/api/admin/revoke-consent/:participantId', (req, res) => {
+    if (!isAdminAuthorized(req)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const participantId = req.params.participantId;
+    if (!participantId) {
+      return res.status(400).json({ error: 'participantId is required' });
+    }
+    try {
+      const hashedId = sha256(participantId);
+      const data = loadData();
+      if (data.participants[hashedId]) {
+        data.participants[hashedId].consentStatus = 'revoked';
+        data.participants[hashedId].lastConsentUpdate = new Date().toISOString();
+        saveData(data);
+        return res.json({ success: true, message: 'Consent revoked' });
+      }
+      return res.status(404).json({ error: 'Participant not found' });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to revoke consent' });
     }
   });
 
@@ -342,7 +369,13 @@ function createApp(options = {}) {
 
     try {
       const data = loadData();
-      const normalizedRole = role === 'SCIENTIST' ? 'SCIENTIST' : 'ADMIN';
+      // Reject creation if username already exists
+      const exists = data.adminUsers.find((user) => user.username === username);
+      if (exists) {
+        return res.status(400).json({ error: 'username already exists' });
+      }
+
+      const normalizedRole = role === 'RESEARCHER' ? 'RESEARCHER' : 'ADMIN';
       const nextUser = {
         username,
         password,
@@ -351,17 +384,43 @@ function createApp(options = {}) {
         addedBy: addedBy || 'system',
       };
 
-      const idx = data.adminUsers.findIndex((user) => user.username === username);
-      if (idx >= 0) {
-        data.adminUsers[idx] = nextUser;
-      } else {
-        data.adminUsers.push(nextUser);
-      }
+      data.adminUsers.push(nextUser);
 
       saveData(data);
       return res.json({ success: true, user: nextUser });
     } catch (error) {
       return res.status(500).json({ error: 'Failed to save admin user' });
+    }
+  });
+
+  // Update existing admin user (password/role)
+  app.put('/api/admin/users', (req, res) => {
+    if (!isAdminAuthorized(req)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const { username, password, role, addedAt, addedBy } = req.body || {};
+    if (!username || !password || !role) {
+      return res.status(400).json({ error: 'username, password and role are required' });
+    }
+    try {
+      const data = loadData();
+      const idx = data.adminUsers.findIndex((user) => user.username === username);
+      if (idx < 0) {
+        return res.status(404).json({ error: 'Admin user not found' });
+      }
+      const normalizedRole = role === 'RESEARCHER' ? 'RESEARCHER' : 'ADMIN';
+      const nextUser = {
+        username,
+        password,
+        role: normalizedRole,
+        addedAt: addedAt || data.adminUsers[idx].addedAt || new Date().toISOString(),
+        addedBy: addedBy || data.adminUsers[idx].addedBy || 'system',
+      };
+      data.adminUsers[idx] = nextUser;
+      saveData(data);
+      return res.json({ success: true, user: nextUser });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to update admin user' });
     }
   });
 

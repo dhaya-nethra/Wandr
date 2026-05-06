@@ -1,9 +1,9 @@
 /**
- * AdminLayout — Government portal layout for NATPAC admins/scientists.
+ * AdminLayout — Government portal layout for NATPAC admins/researchers.
  *
  * Visually distinct from the participant AppLayout:
  *  • Deep blue top navbar (no bottom nav)
- *  • Role-colored accent stripe (blue = ADMIN, slate = SCIENTIST)
+ *  • Role-colored accent stripe (blue = ADMIN, slate = RESEARCHER)
  *  • Desktop sidebar on lg+ screens
  *  • No gradient-primary header, no mobile bottom navigation
  */
@@ -28,7 +28,7 @@ const ROLE_CONFIG: Record<AdminRole, { label: string; badgeCls: string }> = {
     label: 'Administrator',
     badgeCls: 'bg-sky-600 hover:bg-sky-600 text-white',
   },
-  SCIENTIST: {
+  RESEARCHER: {
     label: 'Researcher',
     badgeCls: 'bg-slate-600 hover:bg-slate-600 text-white',
   },
@@ -173,7 +173,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {' '}· Expires{' '}
             <strong className="text-foreground">{new Date(session.expiresAt).toLocaleTimeString()}</strong>
             {' '}· All actions are audit-logged
-            {role === 'SCIENTIST' && ' · Anonymised data only'}
+            {role === 'RESEARCHER' && ' · Anonymised data only'}
           </p>
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <Building2 className="h-3 w-3 text-muted-foreground/50" />

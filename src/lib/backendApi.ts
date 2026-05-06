@@ -1,6 +1,6 @@
 import { Trip } from '@/types/trip';
 
-export type AdminRole = 'ADMIN' | 'SCIENTIST';
+export type AdminRole = 'ADMIN' | 'RESEARCHER';
 
 export interface AdminAuditEntry {
   id: string;
@@ -21,6 +21,7 @@ export interface ServerParticipant {
   createdAt: string;
   lastUpdated: string;
   trips: Trip[];
+  consentStatus?: 'yes' | 'no' | 'revoked';
 }
 
 export interface ManagedAdminUser {
@@ -81,7 +82,7 @@ export async function loginAdmin(username: string, password: string, govKey: str
   }
 
   const body = await res.json();
-  return { role: body.role === 'SCIENTIST' ? 'SCIENTIST' : 'ADMIN' };
+  return { role: body.role === 'RESEARCHER' ? 'RESEARCHER' : 'ADMIN' };
 }
 
 export async function fetchTrips(participantId: string): Promise<Trip[]> {
@@ -93,11 +94,11 @@ export async function fetchTrips(participantId: string): Promise<Trip[]> {
   return Array.isArray(body.trips) ? body.trips : [];
 }
 
-export async function syncTrips(participantId: string, trips: Trip[]): Promise<void> {
+export async function syncTrips(participantId: string, trips: Trip[], hasConsent: boolean = true): Promise<void> {
   const res = await fetch(`${SERVER_URL}/api/sync`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ participantId, trips }),
+    body: JSON.stringify({ participantId, trips, hasConsent }),
   });
   if (!res.ok) {
     throw new Error('Failed to sync trips');
@@ -183,6 +184,18 @@ export async function saveAdminUser(user: ManagedAdminUser): Promise<void> {
   }
 }
 
+export async function updateAdminUser(user: ManagedAdminUser): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/admin/users`, {
+    method: 'PUT',
+    headers: adminHeaders(),
+    body: JSON.stringify(user),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Failed to update admin user');
+  }
+}
+
 export async function removeAdminUser(username: string): Promise<void> {
   const res = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}`, {
     method: 'DELETE',
@@ -200,5 +213,16 @@ export async function checkServerHealth(): Promise<boolean> {
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+export async function revokeParticipantConsent(participantId: string): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/admin/revoke-consent/${encodeURIComponent(participantId)}`, {
+    method: 'POST',
+    headers: adminHeaders(),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Failed to revoke consent');
   }
 }
