@@ -31,7 +31,7 @@ function createApp(options = {}) {
   app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081', 
              'http://localhost:8082', 'http://localhost:8083', 'http://localhost:3000',
-             'https://localhost:8081', 'https://localhost:8083'],
+             'https://localhost:8080', 'https://localhost:8081', 'https://localhost:8083'],
     credentials: true,
   }));
   app.use(express.json({ limit: '2mb' }));
@@ -52,14 +52,15 @@ function createApp(options = {}) {
       role: params.role,
       action: params.action,
       details: params.details || '',
+      prevHash, // Store prevHash to make verification easier
     };
 
     const chainInput = `${prevHash}|${entry.id}|${entry.timestamp}|${entry.adminId}|${entry.action}|`;
     const chainHash = sha256(chainInput);
 
     data.auditLog.push({ ...entry, chainHash });
-    if (data.auditLog.length > 500) {
-      data.auditLog = data.auditLog.slice(-500);
+    if (data.auditLog.length > 1000) {
+      data.auditLog = data.auditLog.slice(-1000);
     }
   }
 
@@ -333,6 +334,34 @@ function createApp(options = {}) {
     }
   });
 
+  app.post('/api/admin/audit/repair', (req, res) => {
+    if (!isAdminAuthorized(req)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      const data = loadData();
+      let prevHash = '0'.repeat(64);
+      
+      for (let i = 0; i < data.auditLog.length; i++) {
+        const entry = data.auditLog[i];
+        // Ensure prevHash is stored in the object too
+        entry.prevHash = prevHash;
+        
+        const chainInput = `${prevHash}|${entry.id}|${entry.timestamp}|${entry.adminId}|${entry.action}|`;
+        entry.chainHash = sha256(chainInput);
+        prevHash = entry.chainHash;
+      }
+      
+      saveData(data);
+      console.log(`Audit chain repaired: ${data.auditLog.length} entries re-hashed.`);
+      return res.json({ success: true, count: data.auditLog.length });
+    } catch (error) {
+      console.error('Repair audit error:', error);
+      return res.status(500).json({ error: 'Failed to repair audit chain' });
+    }
+  });
+
   app.get('/api/admin/audit', (req, res) => {
     if (!isAdminAuthorized(req)) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -340,7 +369,8 @@ function createApp(options = {}) {
 
     try {
       const data = loadData();
-      const logs = [...data.auditLog].reverse().slice(0, 200);
+      // Return up to 500 latest logs in chronological order
+      const logs = data.auditLog.slice(-500);
       return res.json({ logs });
     } catch (error) {
       return res.status(500).json({ error: 'Failed to retrieve audit log' });

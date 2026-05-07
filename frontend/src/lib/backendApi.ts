@@ -153,12 +153,20 @@ export async function appendAdminAudit(params: {
 }): Promise<void> {
   const res = await fetch(`${SERVER_URL}/api/admin/audit`, {
     method: 'POST',
-    headers: adminHeaders(),
+    headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
   if (!res.ok) {
     throw new Error('Failed to write audit log');
   }
+}
+
+export async function repairAdminAudit(): Promise<void> {
+  const res = await fetch(`${SERVER_URL}/api/admin/audit/repair`, {
+    method: 'POST',
+    headers: adminHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to repair audit chain');
 }
 
 export async function fetchAdminUsers(): Promise<ManagedAdminUser[]> {

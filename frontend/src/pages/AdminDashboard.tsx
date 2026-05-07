@@ -14,7 +14,19 @@ import {
   revokeParticipantConsent,
   ServerParticipant,
   AdminAuditEntry,
+  repairAdminAudit,
 } from '@/lib/backendApi';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { sha256Hex } from '@/lib/crypto';
 import { Trip } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -111,11 +123,28 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
   const verifyAuditChain = useCallback(async (entries: AdminAuditEntry[]): Promise<boolean> => {
-    let prevHash = '0'.repeat(64);
-    for (const entry of [...entries].reverse()) {
+    if (entries.length === 0) return true;
+    
+    // The server now returns logs in chronological order.
+    // If the server provides a prevHash for the first entry, use it as the anchor.
+    let prevHash = (entries[0] as any).prevHash || '0'.repeat(64);
+    
+    for (const entry of entries) {
       const chainInput = `${prevHash}|${entry.id}|${entry.timestamp}|${entry.adminId}|${entry.action}|`;
       const expected = await sha256Hex(chainInput);
-      if (expected !== entry.chainHash) return false;
+      
+      if (expected !== entry.chainHash) {
+        console.error('Audit Chain Verification Failed!', {
+          entryId: entry.id,
+          action: entry.action,
+          timestamp: entry.timestamp,
+          calculatedHash: expected,
+          storedHash: entry.chainHash,
+          prevHashUsed: prevHash,
+          chainInputUsed: chainInput
+        });
+        return false;
+      }
       prevHash = entry.chainHash;
     }
     return true;
@@ -136,8 +165,8 @@ export default function AdminDashboard() {
       setParticipants(loadedParticipants);
 
       const logs = await fetchAdminAuditLog();
-      setAllAuditLog(logs);
-      setAuditLog(logs);
+      setAllAuditLog([...logs].reverse());
+      setAuditLog([...logs].reverse());
       setAuditValid(await verifyAuditChain(logs));
 
       const hashedUser = await sha256Hex(session.adminId);
@@ -290,8 +319,8 @@ export default function AdminDashboard() {
     // Refresh audit log display
     try {
       const logs = await fetchAdminAuditLog();
-      setAllAuditLog(logs);
-      setAuditLog(logs);
+      setAllAuditLog([...logs].reverse());
+      setAuditLog([...logs].reverse());
       setAuditValid(await verifyAuditChain(logs));
     } catch {}
     toast.success('JSON export complete');
@@ -323,11 +352,27 @@ export default function AdminDashboard() {
     // Refresh audit log display
     try {
       const logs = await fetchAdminAuditLog();
-      setAllAuditLog(logs);
-      setAuditLog(logs);
-      setAuditValid(await verifyAuditChain(logs));
+      setAllAuditLog([...logs].reverse());
+      setAuditLog([...logs].reverse());
+      const isValid = await verifyAuditChain(logs);
+      setAuditValid(isValid);
+      
+      if (!isValid) {
+        console.warn('Audit chain is broken. This might be due to a server-side truncation or manual data edit. You can try repairing the chain if you have ADMIN privileges.');
+      }
     } catch {}
     toast.success('CSV export complete');
+  };
+
+  const handleRepairChain = async () => {
+    try {
+      await repairAdminAudit();
+      toast.success('Audit chain repaired successfully');
+      loadData();
+    } catch (e) {
+      toast.error('Error repairing chain');
+      console.error(e);
+    }
   };
 
   const handleFilterAudit = () => {
@@ -716,9 +761,19 @@ export default function AdminDashboard() {
                     </Badge>
                   )}
                   {auditValid === false && (
-                    <Badge variant="destructive" className="text-xs">
-                      <AlertTriangle className="h-3 w-3 mr-1" /> Chain Broken!
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="destructive" className="text-xs">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> Chain Broken!
+                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-[10px]"
+                        onClick={handleRepairChain}
+                      >
+                        Repair Chain
+                      </Button>
+                    </div>
                   )}
                 </CardTitle>
               </CardHeader>
