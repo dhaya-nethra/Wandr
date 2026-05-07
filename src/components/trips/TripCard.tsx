@@ -5,6 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Route, Users, IndianRupee, Pencil, Trash2, AlertCircle } from 'lucide-react';
 import { TravelModeIcon } from './TravelModeIcon';
 import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TripCardProps {
   trip: Trip;
@@ -76,10 +87,30 @@ export function TripCard({ trip, onClick, onEdit, onDelete }: TripCardProps) {
               </button>
             )}
             {onDelete && (
-              <button onClick={() => onDelete(trip.id)}
-                className="flex items-center gap-1 rounded-sm border border-border px-2 py-1 text-[12px] font-medium text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors">
-                <Trash2 className="h-3 w-3" /> Delete
-              </button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="flex items-center gap-1 rounded-sm border border-border px-2 py-1 text-[12px] font-medium text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors">
+                    <Trash2 className="h-3 w-3" /> Delete
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete trip record?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently remove this trip record from your history.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(trip.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         )}

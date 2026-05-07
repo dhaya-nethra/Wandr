@@ -25,7 +25,7 @@ export default function Login() {
     e.preventDefault();
     if (!name.trim()) { setError('Enter your name or participant ID'); return; }
     if (!password.trim()) { setError('Enter your password'); return; }
-    if (!/^\d{6}$/.test(password)) { setError('Password must be 6 digits'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     
     setIsLoading(true);
     try {
@@ -88,11 +88,9 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="6-digit PIN"
+                placeholder="At least 6 characters"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 className={`h-11 rounded-sm text-[14px] ${error && !password.trim() ? 'border-destructive' : ''}`}
               />
             </div>

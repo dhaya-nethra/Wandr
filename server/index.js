@@ -82,8 +82,8 @@ function createApp(options = {}) {
     if (!participantId || !password) {
       return res.status(400).json({ error: 'participantId and password are required' });
     }
-    if (!/^\d{6}$/.test(password)) {
-      return res.status(400).json({ error: 'Password must be exactly 6 digits' });
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
     try {
