@@ -82,6 +82,9 @@ function createApp(options = {}) {
     if (!participantId || !password) {
       return res.status(400).json({ error: 'participantId and password are required' });
     }
+    if (!/^\d{6}$/.test(password)) {
+      return res.status(400).json({ error: 'Password must be exactly 6 digits' });
+    }
 
     try {
       const hashedId = sha256(participantId);
@@ -129,6 +132,10 @@ function createApp(options = {}) {
 
       if (data.participantAuth[hashedId] !== sha256(password)) {
         return res.status(401).json({ error: 'Invalid password' });
+      }
+
+      if (data.participants[hashedId]?.consentStatus === 'revoked') {
+        return res.status(403).json({ error: 'Account access has been revoked' });
       }
 
       return res.json({ success: true });
