@@ -5,7 +5,7 @@
   "description": "Wandr - Trip tracker desktop and mobile app (monorepo)",
   "author": "NATPAC",
   "scripts": {
-    "install:all": "npm install && npm install --prefix backend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
     "dev": "npm run dev --prefix frontend",
     "dev:server": "npm run dev:server --prefix frontend",
     "dev:all": "npm run dev:all --prefix frontend",
