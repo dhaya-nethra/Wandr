@@ -32,9 +32,9 @@ function createApp(options = {}) {
   const app = express();
 
   app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081', 
-             'http://localhost:8082', 'http://localhost:8083', 'http://localhost:3000',
-             'https://localhost:8080', 'https://localhost:8081', 'https://localhost:8083'],
+    origin: ['http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081',
+      'http://localhost:8082', 'http://localhost:8083', 'http://localhost:3000',
+      'https://localhost:8080', 'https://localhost:8081', 'https://localhost:8083', 'https://alamelu08.github.io',],
     credentials: true,
   }));
   app.use(express.json({ limit: '2mb' }));
@@ -100,7 +100,7 @@ function createApp(options = {}) {
       }
 
       data.participantAuth[hashedId] = sha256(password);
-      
+
       if (!data.participants) data.participants = {};
       if (!data.participants[hashedId]) {
         const alias = participantId.slice(0, 2).toUpperCase() + hashedId.slice(0, 4).toUpperCase();
@@ -223,13 +223,13 @@ function createApp(options = {}) {
     try {
       const hashedId = sha256(req.params.participantId);
       const data = loadData();
-      
+
       // Clear trips
       data.trips[hashedId] = [];
-      
+
       // Optionally remove participant record too? 
       // User said 'user data should be cleared'. Usually means trips.
-      
+
       saveData(data);
       return res.json({ success: true, message: 'All user data cleared' });
     } catch (error) {
@@ -345,17 +345,17 @@ function createApp(options = {}) {
     try {
       const data = loadData();
       let prevHash = '0'.repeat(64);
-      
+
       for (let i = 0; i < data.auditLog.length; i++) {
         const entry = data.auditLog[i];
         // Ensure prevHash is stored in the object too
         entry.prevHash = prevHash;
-        
+
         const chainInput = `${prevHash}|${entry.id}|${entry.timestamp}|${entry.adminId}|${entry.action}|`;
         entry.chainHash = sha256(chainInput);
         prevHash = entry.chainHash;
       }
-      
+
       saveData(data);
       console.log(`Audit chain repaired: ${data.auditLog.length} entries re-hashed.`);
       return res.json({ success: true, count: data.auditLog.length });

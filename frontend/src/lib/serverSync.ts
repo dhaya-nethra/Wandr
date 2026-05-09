@@ -5,7 +5,7 @@
 import { Trip } from '@/types/trip';
 
 const useProxy = typeof window !== 'undefined' && window.location.protocol.startsWith('http') && import.meta.env.DEV;
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'http://localhost:3001');
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'https://wandr-backend-9ltd.onrender.com');
 
 export async function syncTripsToServer(
   participantId: string,

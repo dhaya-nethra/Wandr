@@ -33,7 +33,7 @@ export interface ManagedAdminUser {
 }
 
 const useProxy = typeof window !== 'undefined' && window.location.protocol.startsWith('http') && import.meta.env.DEV;
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'http://localhost:3001');
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || (useProxy ? '' : 'https://wandr-backend-9ltd.onrender.com');
 const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || 'NATPAC-ADMIN-KEY';
 
 function adminHeaders(): HeadersInit {
