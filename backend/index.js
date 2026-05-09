@@ -3,7 +3,10 @@ const cors = require('cors');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
+
 const { loadData, saveData } = require('./db');
+const db = require('./database'); // PostgreSQL connection pool
 
 const DEFAULT_PORT = process.env.PORT || 3001;
 const GOV_MASTER_KEY = process.env.GOV_MASTER_KEY || 'NATPAC-KERALA-GOV-2026-DEMO';
@@ -490,6 +493,16 @@ function createApp(options = {}) {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.get('/api/db-health', async (_req, res) => {
+    try {
+      const result = await db.query('SELECT NOW()');
+      res.json({ status: 'ok', db_time: result.rows[0].now });
+    } catch (error) {
+      console.error('Database health check failed:', error);
+      res.status(500).json({ status: 'error', message: error.message });
+    }
   });
 
   if (webDir) {

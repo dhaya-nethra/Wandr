@@ -35,7 +35,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/Wandr/">
           <Routes>
             {/* ── Participant routes ── */}
             <Route path="/" element={<Index />} />

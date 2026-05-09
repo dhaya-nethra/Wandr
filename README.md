@@ -35,37 +35,19 @@ Consent management, encrypted data collection, and secure participant data handl
 Audit Logging:
 Track administrative activities and system events for transparency.
 
-
 Tech Stack
-
 
 Frontend: React, TypeScript, Tailwind CSS
 
-
 Backend: Node.js / Express.js
-
 
 Database: PostgreSQL
 
-
 Authentication: Role-based authentication system
-
 
 Location Services: GPS and device location APIs
 
-
 Data Export: JSON and CSV data processing tools
-
-## Project Structure
-
-This is a monorepo with the following structure:
-
-- **`frontend/`**: React + Vite frontend application.
-- **`backend/`**: Node.js Express server.
-- **`mobile/`**: Mobile platform code (Android & iOS) managed by Capacitor.
-- **`apps/desktop/`**: Electron-specific main process code.
-- **`docs-site/`**: Documentation website.
-
 
 ## Prerequisites
 
@@ -98,47 +80,18 @@ npm run dev:all
 - **Frontend:** http://localhost:5173
 - **Backend:** http://localhost:3000
 
-Project Structure
+## Project Structure
 
+```text
 wandr/
-├── frontend/                    # React + Vite web application
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   │   ├── layout/        # AdminLayout, AppLayout, MobileNav
-│   │   │   ├── trips/         # Trip-related components (TripForm, TripCard, etc.)
-│   │   │   ├── ui/            # shadcn/ui components (buttons, dialogs, etc.)
-│   │   │   ├── AdminSecretTrigger.tsx
-│   │   │   └── NavLink.tsx
-│   │   ├── hooks/             # Custom React hooks (useAuth, useTrips, useGeolocation, etc.)
-│   │   ├── lib/               # Utilities (backendApi, crypto, geocoding, serverSync)
-│   │   ├── pages/             # Page components (Dashboard, Login, NewTrip, Profile, etc.)
-│   │   ├── types/             # TypeScript type definitions (trip.ts)
-│   │   ├── test/              # Test files
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   ├── index.css
-│   │   ├── App.css
-│   │   └── vite-env.d.ts
-│   ├── public/                # Static assets
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.ts
-│   ├── tsconfig.json
-│   ├── eslint.config.js
-│   ├── postcss.config.js
-│   └── vitest.config.ts
-│
-├── backend/                    # Node.js Express server
-│   ├── index.js               # Main server
-│   ├── db.js                  # JSON file database utilities
-│   ├── natpac_data.json       # Data store
-│   ├── package.json
-│   └── variables.gradle
-│
-├── capacitor.config.ts        # Capacitor configuration
-├── package.json               # Root package config
-├── tsconfig.json              # Root TypeScript config
-├── FOLDER_STRUCTURE.md        # This file
-└── test-proxy.mjs
+├── frontend/          # React + Vite web application
+│   ├── src/           # Application source code (components, pages, hooks)
+│   └── public/        # Static assets
+├── backend/           # Node.js Express server
+│   ├── database.js    # PostgreSQL connection logic
+│   └── index.js       # Main API server
+├── mobile/            # Mobile platform code (Android & iOS)
+├── apps/              # Desktop application (Electron)
+└── docs-site/         # Documentation website
+```
 
