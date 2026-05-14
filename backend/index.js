@@ -111,6 +111,13 @@ function createApp(options = {}) {
         };
       }
 
+      appendAuditEntry(data, {
+        adminId: `USER_${hashedId.slice(0,8)}`,
+        role: 'USER',
+        action: 'USER_REGISTER',
+        details: `Participant registered`,
+      });
+
       saveData(data);
       return res.json({ success: true });
     } catch (error) {
@@ -141,6 +148,14 @@ function createApp(options = {}) {
       if (data.participants[hashedId]?.consentStatus === 'revoked') {
         return res.status(403).json({ error: 'Account access has been revoked' });
       }
+
+      appendAuditEntry(data, {
+        adminId: `USER_${hashedId.slice(0,8)}`,
+        role: 'USER',
+        action: 'USER_LOGIN',
+        details: `Participant logged in`,
+      });
+      saveData(data);
 
       return res.json({ success: true });
     } catch (error) {
@@ -174,6 +189,13 @@ function createApp(options = {}) {
         map[trip.id] = { ...trip, syncedAt: new Date().toISOString() };
       }
       data.trips[hashedId] = Object.values(map);
+
+      appendAuditEntry(data, {
+        adminId: `USER_${hashedId.slice(0,8)}`,
+        role: 'USER',
+        action: 'USER_SYNC',
+        details: `Synced ${trips.length} trips`,
+      });
 
       saveData(data);
       return res.json({ success: true, synced: trips.length });
@@ -227,8 +249,12 @@ function createApp(options = {}) {
       // Clear trips
       data.trips[hashedId] = [];
 
-      // Optionally remove participant record too? 
-      // User said 'user data should be cleared'. Usually means trips.
+      appendAuditEntry(data, {
+        adminId: `USER_${hashedId.slice(0,8)}`,
+        role: 'USER',
+        action: 'USER_CLEAR_DATA',
+        details: `Cleared all trips`,
+      });
 
       saveData(data);
       return res.json({ success: true, message: 'All user data cleared' });
@@ -259,6 +285,14 @@ function createApp(options = {}) {
       if (data.trips[hashedId].length === before) {
         return res.status(404).json({ error: 'Trip not found' });
       }
+
+      appendAuditEntry(data, {
+        adminId: `USER_${hashedId.slice(0,8)}`,
+        role: 'USER',
+        action: 'USER_DELETE_TRIP',
+        details: `Deleted trip ${tripId.slice(0,8)}...`,
+      });
+
       saveData(data);
       return res.json({ success: true });
     } catch (error) {

@@ -70,6 +70,7 @@ import { TravelModeIcon } from '@/components/trips/TravelModeIcon';
 const ROLE_COLORS: Record<string, string> = {
   ADMIN:       'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   RESEARCHER:   'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  USER:         'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
 };
 
 const TRAVEL_MODE_LABELS: Record<string, string> = {
@@ -280,7 +281,7 @@ export default function AdminDashboard() {
     if (filterDateFrom && t.createdAt.slice(0, 10) < filterDateFrom) return false;
     if (filterDateTo && t.createdAt.slice(0, 10) > filterDateTo) return false;
     return true;
-  });
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const totalDistance = allTrips.reduce((a, t) => a + t.distance, 0);
   const totalCost = allTrips.reduce((a, t) => a + t.cost, 0);
@@ -544,14 +545,17 @@ export default function AdminDashboard() {
                             ))}
                           </TableRow>
                         ))
-                      ) : participants.filter((p) => participantSearch === '' || p.participantAlias.includes(participantSearch)).length === 0 ? (
+                      ) : participants.filter((p) => participantSearch === '' || p.participantAlias.toLowerCase().includes(participantSearch.toLowerCase())).length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={canViewParticipantIds ? 9 : 8} className="text-center text-muted-foreground text-sm py-10">
                             {participantSearch ? 'No participants match your search.' : 'No participant data found yet. Ask a participant to sign in or record a trip first.'}
                           </TableCell>
                         </TableRow>
                       ) : (
-                        participants.filter((p) => participantSearch === '' || p.participantAlias.includes(participantSearch)).map((shard) => {
+                        participants
+                          .filter((p) => participantSearch === '' || p.participantAlias.toLowerCase().includes(participantSearch.toLowerCase()))
+                          .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
+                          .map((shard) => {
                           const isRevoked = shard.consentStatus === 'revoked';
                           const dist = shard.trips.reduce((a, t) => a + t.distance, 0);
                           const cost = shard.trips.reduce((a, t) => a + t.cost, 0);

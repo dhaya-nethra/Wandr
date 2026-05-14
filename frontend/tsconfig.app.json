@@ -7,8 +7,6 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "allowJs": true,
-    "baseUrl": ".",
-    "ignoreDeprecations": "5.0",
 
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -18,6 +18,7 @@ import AdminAnalytics from "./pages/AdminAnalytics";
 import Signup from "./pages/Signup";
 import { AdminAuthProvider, useAdminAuth } from "./hooks/useAdminAuth";
 import { AdminSecretTrigger } from "./components/AdminSecretTrigger";
+import { TripsProvider } from "./context/TripsContext";
 
 const queryClient = new QueryClient();
 
@@ -32,38 +33,40 @@ function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AdminAuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename="/Wandr/">
-          <Routes>
-            {/* ── Participant routes ── */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/new-trip" element={<NewTrip />} />
-            <Route path="/active-trip" element={<ActiveTrip />} />
-            <Route path="/trips" element={<TripHistory />} />
-            <Route path="/profile" element={<Profile />} />
+      <TripsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename="/Wandr/">
+            <Routes>
+              {/* ── Participant routes ── */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/new-trip" element={<NewTrip />} />
+              <Route path="/active-trip" element={<ActiveTrip />} />
+              <Route path="/trips" element={<TripHistory />} />
+              <Route path="/profile" element={<Profile />} />
 
-            {/* ── Government admin / researcher portal ── */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={
-              <ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>
-            } />
-            <Route path="/admin/analytics" element={
-              <ProtectedAdminRoute><AdminAnalytics /></ProtectedAdminRoute>
-            } />
+              {/* ── Government admin / researcher portal ── */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={
+                <ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>
+              } />
+              <Route path="/admin/analytics" element={
+                <ProtectedAdminRoute><AdminAnalytics /></ProtectedAdminRoute>
+              } />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          {/* Secret keyword trigger — type "natpac" anywhere to reveal admin portal link */}
-          <AdminSecretTrigger />
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            {/* Secret keyword trigger — type "natpac" anywhere to reveal admin portal link */}
+            <AdminSecretTrigger />
+          </BrowserRouter>
+        </TooltipProvider>
+      </TripsProvider>
     </AdminAuthProvider>
   </QueryClientProvider>
 );
