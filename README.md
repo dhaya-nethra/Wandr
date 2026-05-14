@@ -1,41 +1,34 @@
-Wandr
+## Wandr
 
 Wandr is a mobility data collection application developed for Kerala’s transportation planning and research. The platform allows participants to record and manage their daily travel information while enabling researchers and administrators to analyze aggregated travel patterns securely and efficiently.
-Features
 
+## Features
 
 Participant Portal:
 User-friendly interface for recording trips, viewing travel history, and managing travel preferences.
 
-
 Admin Portal:
 Administrative tools for monitoring participant activities, analytics, audit logs, and data management.
-
 
 Trip Tracking:
 Manual and automatic GPS-based trip tracking functionality.
 
-
 Location Services:
 Enable or disable GPS tracking for collecting travel movement data.
-
 
 Data Export:
 Export trip history in JSON format and anonymized CSV datasets for research purposes.
 
-
 Analytics:
 View travel statistics, trip summaries, and mobility insights.
-
 
 Privacy & Security:
 Consent management, encrypted data collection, and secure participant data handling.
 
-
 Audit Logging:
 Track administrative activities and system events for transparency.
 
-Tech Stack
+## Tech Stack
 
 Frontend: React, TypeScript, Tailwind CSS
 
