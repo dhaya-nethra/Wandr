@@ -2369,6 +2369,16 @@
       "details": "Loaded 14 participant records",
       "prevHash": "abc38a046b14bf3d6b75c4734a104512a6e646a694df969101d8b9736d1ce8d8",
       "chainHash": "a559d54d0ff8a06fc611926fb237068b2833d31598ee436fd350aa9c612673ae"
+    },
+    {
+      "id": "mp5mx37m7ntyru",
+      "timestamp": "2026-05-14T15:19:54.754Z",
+      "adminId": "USER_af984e9c",
+      "role": "USER",
+      "action": "USER_LOGIN",
+      "details": "Participant logged in",
+      "prevHash": "a559d54d0ff8a06fc611926fb237068b2833d31598ee436fd350aa9c612673ae",
+      "chainHash": "b1330cd73a9a91d66a36dfac5c4ef3c30e7402e9ad55bc84d7a781267651f452"
     }
   ],
   "adminUsers": [
